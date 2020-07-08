@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="org.jboss.resteasy:resteasy-jaxb-provider:2.2.3.GA" type="repository">
+    <properties maven-id="org.jboss.resteasy:resteasy-jaxb-provider:2.2.3.GA" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/jboss/resteasy/resteasy-jaxb-provider/2.2.3.GA/resteasy-jaxb-provider-2.2.3.GA.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/sun/xml/bind/jaxb-impl/2.2.4/jaxb-impl-2.2.4.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/javax/xml/bind/jaxb-api/2.2.3/jaxb-api-2.2.3.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/sun/xml/stream/sjsxp/1.0.1/sjsxp-1.0.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/javax/xml/stream/stax-api/1.0/stax-api-1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

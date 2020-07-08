@@ -4,6 +4,8 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
+
+//This is a configuration class for Jersey
 //http://localhost:8080/sdp_project_red_war_exploded/
 //Defines the base URI for all resource URIs.
 @ApplicationPath("/")
@@ -13,7 +15,6 @@ public class ResourcesRoot extends Application{
     @Override
     public Set<Class<?>> getClasses() {
         HashSet h = new HashSet<Class<?>>();
-        h.add( HelloWorld.class );
         h.add( Nodes.class);
         return h;
     }

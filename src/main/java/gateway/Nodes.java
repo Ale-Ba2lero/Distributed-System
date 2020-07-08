@@ -1,8 +1,9 @@
 package gateway;
 
-import nodes.Node;
-
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import java.util.List;
 
 @Path("/nodes")
@@ -11,17 +12,24 @@ public class Nodes {
     @GET
     @Produces("text/plain")
     public String printNodes() {
-        List<Node> nodes = Gateway.getInstance().getNodesList();
+        List<NodeInfo> nodeInfos = Gateway.getInstance().getNodesList();
         String nodesPrint = new String();
-        for (Node n : nodes) {
-            nodesPrint += " " + n.getId();
+        for (NodeInfo n : nodeInfos) {
+            nodesPrint += n.toString() + "\n";
         }
         return "Nodes: " + nodesPrint;
     }
 
+    @GET
+    @Produces("text/plain")
+    @Path("/helloworld")
+    public String helloWorld() {
+        return "Hello, world!";
+    }
+
     @POST
-    @Consumes("text/plain")
-    public void setNewNode(String id) {
-        Gateway.getInstance().addNode(new Node("" + id));
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void setNewNode(NodeInfo nodeData) {
+        Gateway.getInstance().addNode(nodeData);
     }
 }
