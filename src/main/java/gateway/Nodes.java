@@ -2,6 +2,7 @@ package gateway;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/nodes")
@@ -20,8 +21,8 @@ public class Nodes {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void setNewNode(NodeInfo nodeData) {
-        System.out.println(nodeData.toString());
+    public Response setNewNode(NodeInfo nodeData) {
         Gateway.getInstance().addNode(nodeData);
+        return Response.ok(nodeData.toString()).build();
     }
 }

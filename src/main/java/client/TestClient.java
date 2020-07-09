@@ -43,6 +43,7 @@ public class TestClient {
 
     private static void POSTNewNodeInfo() {
         NodeInfo newNode = consoleRequestNodeInfo();
+        System.out.println(newNode.toString());
 
         Client client = ClientBuilder.newClient();
         WebTarget webTarget = client.target(URI).path("nodes");
@@ -50,6 +51,8 @@ public class TestClient {
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(newNode, MediaType.APPLICATION_JSON));
         System.out.println("\nResponse status: " + response.getStatus());
+        String responseEntity = response.readEntity(String.class);
+        System.out.println(responseEntity);
     }
 
     private static void GETServerNodesInfo() {
