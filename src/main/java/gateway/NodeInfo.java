@@ -8,6 +8,15 @@ public class NodeInfo {
     private String ip;
     private int port;
 
+    public NodeInfo(int id, String ip, int port) {
+        this.id = id;
+        this.ip = ip;
+        this.port = port;
+    }
+
+    public NodeInfo(){
+    }
+
     public int getId() {
         return id;
     }
@@ -20,18 +29,6 @@ public class NodeInfo {
         return port;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-    /*
     @Override
     public String toString() {
         return "NodeInfo{" +
@@ -39,5 +36,5 @@ public class NodeInfo {
                 ", ip='" + ip + '\'' +
                 ", port=" + port +
                 '}';
-    }*/
+    }
 }

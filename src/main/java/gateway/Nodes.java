@@ -2,8 +2,6 @@ package gateway;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import java.util.List;
 
 @Path("/nodes")
@@ -20,16 +18,10 @@ public class Nodes {
         return "Nodes: " + nodesPrint;
     }
 
-    @GET
-    @Produces("text/plain")
-    @Path("/helloworld")
-    public String helloWorld() {
-        return "Hello, world!";
-    }
-
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void setNewNode(NodeInfo nodeData) {
+        System.out.println(nodeData.toString());
         Gateway.getInstance().addNode(nodeData);
     }
 }
