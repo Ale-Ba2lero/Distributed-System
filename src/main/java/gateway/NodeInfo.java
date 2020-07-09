@@ -29,6 +29,18 @@ public class NodeInfo {
         return port;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     @Override
     public String toString() {
         return "NodeInfo{" +
