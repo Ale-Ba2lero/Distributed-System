@@ -1,7 +1,6 @@
 package client;
 
 import gateway.NodeInfo;
-import org.glassfish.jersey.client.ClientResponse;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
