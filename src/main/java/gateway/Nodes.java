@@ -11,7 +11,7 @@ public class Nodes {
     @GET
     @Produces("text/plain")
     public String printNodes() {
-        List<NodeInfo> nodeInfos = Gateway.getInstance().getNodesList();
+        List<NodeInfo> nodeInfos = NodeHandler.getInstance().getNodesList();
         String nodesPrint = new String();
         for (NodeInfo n : nodeInfos) {
             nodesPrint += n.toString() + "\n";
@@ -22,7 +22,7 @@ public class Nodes {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setNewNode(NodeInfo nodeData) {
-        Gateway.getInstance().addNode(nodeData);
+        NodeHandler.getInstance().addNode(nodeData);
         return Response.ok(nodeData.toString()).build();
     }
 }

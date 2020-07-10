@@ -19,8 +19,10 @@ public class TestClient {
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
         while (run) {
-            System.out.println("0: (POST) insert new node infos.\n" +
-                    "1: (GET) obtain list of nodes from server.");
+            System.out.println(
+                "0: (POST) insert new node infos.\n" +
+                "1: (GET) obtain list of nodes from server."
+            );
 
             try {
                 int userInput = Integer.parseInt(bufferedReader.readLine());

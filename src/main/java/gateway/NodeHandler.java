@@ -3,19 +3,19 @@ package gateway;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Gateway {
+public class NodeHandler {
 
-    private static Gateway instance = null;
+    private static NodeHandler instance = null;
     private List<NodeInfo> nodes;
 
-    private Gateway() {
+    private NodeHandler() {
         nodes = new ArrayList<NodeInfo>();
     }
 
-    public static synchronized Gateway getInstance()
+    public static synchronized NodeHandler getInstance()
     {
         if (instance == null)
-            instance = new Gateway();
+            instance = new NodeHandler();
 
         return instance;
     }
