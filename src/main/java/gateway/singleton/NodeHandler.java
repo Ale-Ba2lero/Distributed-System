@@ -1,15 +1,18 @@
-package gateway;
+package gateway.singleton;
+
+import Beans.NodeInfo;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class NodeHandler {
 
     private static NodeHandler instance = null;
-    private List<NodeInfo> nodes;
+    private LinkedList<NodeInfo> nodes;
 
     private NodeHandler() {
-        nodes = new ArrayList<NodeInfo>();
+        nodes = new LinkedList<NodeInfo>();
     }
 
     public static synchronized NodeHandler getInstance()
@@ -24,8 +27,11 @@ public class NodeHandler {
         this.nodes.add(nodeInfo);
     }
 
-    //a shallow copy is returned instead of the reference to be thread safe
-    public synchronized List<NodeInfo> getNodesList() {
-        return new ArrayList<NodeInfo>(this.nodes);
+    public synchronized LinkedList<NodeInfo> getNodesList() {
+        return new LinkedList<NodeInfo>(this.nodes);
+    }
+
+    public synchronized boolean deleteNode (NodeInfo node) {
+        return nodes.remove(node);
     }
 }

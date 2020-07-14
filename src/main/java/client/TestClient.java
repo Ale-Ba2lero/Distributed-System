@@ -1,6 +1,6 @@
 package client;
 
-import gateway.NodeInfo;
+import Beans.NodeInfo;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
@@ -20,24 +20,25 @@ public class TestClient {
 
         while (run) {
             System.out.println(
-                "0: (POST) insert new node infos.\n" +
-                "1: (GET) obtain list of nodes from server."
+                "1: (POST) insert new node infos.\n" +
+                "2: (GET) obtain list of nodes from server.\n" +
+                "3: (DELETE) remove a node\n"
             );
 
             try {
                 int userInput = Integer.parseInt(bufferedReader.readLine());
-                if (userInput == 0) {
+                if (userInput == 1) {
                     POSTNewNodeInfo();
-                } else if (userInput == 1) {
+                } else if (userInput == 2) {
                     GETServerNodesInfo();
-                } else {
+                } else if (userInput == 3) {
+                    DELETENodeInfo();
+                }
+                else {
                     System.out.println("Wrong input.\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                System.out.println("\nPress any key to continue");
-                bufferedReader.readLine();
             }
         }
     }
@@ -46,17 +47,17 @@ public class TestClient {
         NodeInfo newNode = consoleRequestNodeInfo();
 
         Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target(URI).path("nodes");
+        WebTarget webTarget = client.target(URI).path("node");
         Response response = webTarget
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(newNode, MediaType.APPLICATION_JSON));
-        System.out.println("\nResponse status: " + response.getStatus());
+        System.out.println("\n\nResponse status: " + response.getStatus());
         System.out.println(response.readEntity(String.class));
     }
 
     private static void GETServerNodesInfo() {
         Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target(URI).path("nodes");
+        WebTarget webTarget = client.target(URI).path("node");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN);
         Response response = invocationBuilder.get();
 
@@ -64,8 +65,31 @@ public class TestClient {
         System.out.println(response.readEntity(String.class));
     }
 
-    private static NodeInfo consoleRequestNodeInfo() {
+    private static void DELETENodeInfo() {
+        Client client = ClientBuilder.newClient();
+        int nodeId = consoleRequestNodeId();
+        WebTarget webTarget = client.target(URI).path("node/" + nodeId);
+        Response response = webTarget
+                .request(MediaType.TEXT_PLAIN)
+                .delete();
+        System.out.println("\n\nResponse status: " + response.getStatus());
+        System.out.println(response.readEntity(String.class));
+    }
 
+    private static int consoleRequestNodeId() {
+        InputStreamReader streamReader = new InputStreamReader(System.in);
+        BufferedReader bufferedReader = new BufferedReader(streamReader);
+        int id = 0;
+        try {
+            System.out.print("Enter node ID: ");
+            id = Integer.parseInt(bufferedReader.readLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return id;
+    }
+
+    private static NodeInfo consoleRequestNodeInfo() {
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 

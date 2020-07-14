@@ -1,4 +1,4 @@
-package gateway;
+package Beans;
 
 import javax.xml.bind.annotation.*;
 
