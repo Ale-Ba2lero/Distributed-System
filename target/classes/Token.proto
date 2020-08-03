@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message Token {
+  repeated int32 add = 1;
+  repeated int32 remove = 2;
+
+  message SensorData {
+    int32 data = 1;
+  }
+}

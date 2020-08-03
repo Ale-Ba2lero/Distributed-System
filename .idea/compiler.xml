@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="sdp-project-red" target="6" />
+      <module name="sdp-project-red" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
