@@ -8,17 +8,11 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Random;
 
-
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 public class Node {
+    private static ServerHandler serverHandler;
 
-    private static String URI = "http://localhost:8080/sdp_project_red_war_exploded/";
     private static NodeInfo nodeInfo;
-
-    LinkedList<NodeInfo> nodes;
+    private LinkedList<NodeInfo> nodes;
 
     public static void main(String args[]) throws IOException {
         boolean run = true;
@@ -28,23 +22,34 @@ public class Node {
         while (run) {
             System.out.println(
                 "1: Init.\n" +
-                "2: Greet the server.\n"
+                "2: Greet the server.\n" +
+                "3: Show node info.\n"
             );
 
             try {
                 int userInput = Integer.parseInt(bufferedReader.readLine());
-                if (userInput == 1) {
-                    init();
-                } else if (userInput == 2) {
-                    greeting();
-                }
-                else {
-                    System.out.println("Wrong input.\n");
+
+                switch (userInput) {
+                    case 1:
+                        init();
+                        break;
+                    case 2:
+                        serverHandler.greeting(nodeInfo);
+                        break;
+                    case 3:
+                        displayNodeInfo();
+                        break;
+                    default:
+                        System.out.println("Wrong input.\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static void displayNodeInfo() {
+        System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
     }
 
     private static void init() {
@@ -57,15 +62,5 @@ public class Node {
         System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
     }
 
-    private static void greeting() {
-        NodeInfo nodeInfo = Node.nodeInfo;
 
-        Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target(Node.URI).path("node");
-        Response response = webTarget
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(nodeInfo, MediaType.APPLICATION_JSON));
-        System.out.println("\nResponse status: " + response.getStatus());
-        System.out.println(response.readEntity(String.class));
-    }
 }
