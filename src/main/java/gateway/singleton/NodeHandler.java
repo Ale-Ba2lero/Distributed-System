@@ -1,10 +1,7 @@
 package gateway.singleton;
 
-import Beans.NodeInfo;
-
-import java.util.ArrayList;
+import jBeans.NodeInfo;
 import java.util.LinkedList;
-import java.util.List;
 
 public class NodeHandler {
 

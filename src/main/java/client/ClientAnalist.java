@@ -3,6 +3,7 @@ package client;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,4 +47,5 @@ public class ClientAnalist {
         System.out.println(response.getStatus());
         return response.readEntity(String.class);
     }
+
 }

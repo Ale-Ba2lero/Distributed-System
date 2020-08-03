@@ -1,6 +1,6 @@
 package client;
 
-import Beans.NodeInfo;
+import jBeans.NodeInfo;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
