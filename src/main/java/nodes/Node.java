@@ -2,6 +2,7 @@ package nodes;
 
 import jBeans.NodeInfo;
 
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,7 +21,7 @@ public class Node {
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
         while (run) {
-            System.out.println(
+            System.out.println("Node Main ----------------------------------------\n" +
                 "1: Init.\n" +
                 "2: Greet the server.\n" +
                 "3: Show node info.\n"
@@ -34,7 +35,7 @@ public class Node {
                         init();
                         break;
                     case 2:
-                        serverHandler.greeting(nodeInfo);
+                        greeting();
                         break;
                     case 3:
                         displayNodeInfo();
@@ -45,6 +46,7 @@ public class Node {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
     }
 
@@ -53,6 +55,7 @@ public class Node {
     }
 
     private static void init() {
+        System.out.println("\nInit -------------------------");
         Random random = new Random();
         int id = random.nextInt(1000);
         String ip = "http://localhost/";
@@ -60,6 +63,26 @@ public class Node {
         Node.nodeInfo = new NodeInfo(id, ip, port);
 
         System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
+    }
+
+    private static void greeting() {
+        Response greetingResponse = serverHandler.POSTServerGreeting(nodeInfo);
+        if (greetingResponse.getStatus() == 200) {
+
+            // Star the token receiver thread (gRPC server)
+            Thread receiver = new Thread(new NetworkReceiver(nodeInfo));
+            receiver.start();
+
+            // Get the node list
+            Response nodeListResponse = serverHandler.GETServerNodeList();
+            System.out.println(nodeListResponse.readEntity(String.class));
+
+            // If this is not the only node, start a token transmitter thread(gRPC client)
+
+        } else {
+            System.out.println("\nResponse status: " + greetingResponse.getStatus());
+            System.out.println(greetingResponse.readEntity(String.class) + "\n");
+        }
     }
 
 

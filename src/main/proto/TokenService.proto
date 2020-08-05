@@ -1,6 +1,13 @@
 syntax = "proto3";
 
+package com.networking.node;
+
 //Compile by executing mvn clean install
+service TokenService {
+  rpc SendTheToken (stream Token) returns (Ack) {};
+}
+
+
 message Token {
   repeated int32 add = 1;
   repeated int32 remove = 2;
@@ -8,4 +15,8 @@ message Token {
   message SensorData {
     int32 data = 1;
   }
+}
+
+message Ack {
+  string message = 1;
 }

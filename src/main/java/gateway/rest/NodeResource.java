@@ -1,5 +1,6 @@
 package gateway.rest;
 
+import com.google.gson.Gson;
 import jBeans.NodeInfo;
 import gateway.singleton.NodeHandler;
 
@@ -13,14 +14,11 @@ import java.util.List;
 // The Java class will be hosted at the URI path "/helloworld"
 public class NodeResource {
     @GET
-    @Produces("text/plain")
+    @Produces(MediaType.APPLICATION_JSON)
     public String printNodes() {
         List<NodeInfo> nodeInfos = NodeHandler.getInstance().getNodesList();
-        String nodesPrint = new String();
-        for (NodeInfo n : nodeInfos) {
-            nodesPrint += n.toString() + "\n";
-        }
-        return "Nodes: " + nodesPrint;
+        Gson gson = new Gson();
+        return gson.toJson(nodeInfos);
     }
 
     @POST

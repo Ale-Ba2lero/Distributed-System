@@ -1,6 +1,5 @@
 package jBeans;
 
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
