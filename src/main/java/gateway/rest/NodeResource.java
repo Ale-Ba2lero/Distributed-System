@@ -1,5 +1,7 @@
 package gateway.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import jBeans.NodeInfo;
 import gateway.singleton.NodeHandler;
@@ -13,12 +15,21 @@ import java.util.List;
 @Path("/node")
 // The Java class will be hosted at the URI path "/helloworld"
 public class NodeResource {
+
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces("text/plain")
     public String printNodes() {
         List<NodeInfo> nodeInfos = NodeHandler.getInstance().getNodesList();
-        Gson gson = new Gson();
-        return gson.toJson(nodeInfos);
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            String json = mapper.writeValueAsString(nodeInfos);
+            return json;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return "Error";
     }
 
     @POST

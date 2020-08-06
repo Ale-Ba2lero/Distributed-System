@@ -6,7 +6,7 @@ import jBeans.NodeInfo;
 
 import java.io.IOException;
 
-public class NetworkReceiver implements Runnable{
+public class NetworkReceiver implements Runnable {
     private NodeInfo nodeInfo;
 
     public NetworkReceiver(NodeInfo nodeInfo) {

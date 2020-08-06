@@ -1,5 +1,9 @@
 package nodes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
 
 import javax.ws.rs.core.Response;
@@ -11,11 +15,14 @@ import java.util.Random;
 
 public class Node {
     private static ServerHandler serverHandler;
-
     private static NodeInfo nodeInfo;
-    private LinkedList<NodeInfo> nodes;
+    private static LinkedList<NodeInfo> nodes;
+
+    private static NetworkTransmitter networkOut;
+    private static NetworkReceiver networkIn;
 
     public static void main(String args[]) throws IOException {
+
         boolean run = true;
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
@@ -46,7 +53,6 @@ public class Node {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -60,7 +66,7 @@ public class Node {
         int id = random.nextInt(1000);
         String ip = "http://localhost/";
         int port = 3000 + random.nextInt(1000);
-        Node.nodeInfo = new NodeInfo(id, ip, port);
+        nodeInfo = new NodeInfo(id, ip, port);
 
         System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
     }
@@ -75,9 +81,22 @@ public class Node {
 
             // Get the node list
             Response nodeListResponse = serverHandler.GETServerNodeList();
-            System.out.println(nodeListResponse.readEntity(String.class));
+            String jsonNodeList = nodeListResponse.readEntity(String.class);
+
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                nodes = mapper.readValue(jsonNodeList, new TypeReference<LinkedList<NodeInfo>>() {
+                });
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
 
             // If this is not the only node, start a token transmitter thread(gRPC client)
+            if (nodes.size() > 1) {
+
+            }
 
         } else {
             System.out.println("\nResponse status: " + greetingResponse.getStatus());
@@ -85,5 +104,7 @@ public class Node {
         }
     }
 
+    public synchronized void getNextNodeInNetwork(NetworkTransmitter networkOut) {
 
+    }
 }
