@@ -1,12 +1,14 @@
 package gateway.singleton;
 
 import jBeans.NodeInfo;
+
+import java.util.Collections;
 import java.util.LinkedList;
 
 public class NodeHandler {
 
     private static NodeHandler instance = null;
-    private LinkedList<NodeInfo> nodes;
+    private static LinkedList<NodeInfo> nodes;
 
     private NodeHandler() {
         nodes = new LinkedList<NodeInfo>();
@@ -21,11 +23,14 @@ public class NodeHandler {
     }
 
     public synchronized void addNode(NodeInfo nodeInfo) {
-        this.nodes.add(nodeInfo);
+        nodes.add(nodeInfo);
+
+        //Keep the list to reference node sorted by the id
+        Collections.sort(nodes);
     }
 
     public synchronized LinkedList<NodeInfo> getNodesList() {
-        return new LinkedList<NodeInfo>(this.nodes);
+        return new LinkedList<NodeInfo>(nodes);
     }
 
     public synchronized boolean deleteNode (NodeInfo node) {

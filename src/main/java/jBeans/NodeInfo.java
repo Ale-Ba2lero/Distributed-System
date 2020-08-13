@@ -3,7 +3,7 @@ package jBeans;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class NodeInfo {
+public class NodeInfo  implements Comparable< NodeInfo > {
     private int id;
     private String ip;
     private int port;
@@ -14,8 +14,7 @@ public class NodeInfo {
         this.port = port;
     }
 
-    public NodeInfo(){
-    }
+    public NodeInfo(){}
 
     public int getId() {
         return id;
@@ -48,5 +47,10 @@ public class NodeInfo {
                 ", ip='" + ip + '\'' +
                 ", port=" + port +
                 '}';
+    }
+
+    @Override
+    public int compareTo(NodeInfo o) {
+        return this.getId() - o.getId();
     }
 }

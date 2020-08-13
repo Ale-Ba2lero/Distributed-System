@@ -5,6 +5,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
+import nodes.network.NetworkHandler;
+import nodes.network.Receiver;
+import nodes.network.Transmitter;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -13,13 +16,14 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Random;
 
-public class Node {
-    private static ServerHandler serverHandler;
+public final class Node {
     private static NodeInfo nodeInfo;
-    private static LinkedList<NodeInfo> nodes;
 
-    private static NetworkTransmitter networkOut;
-    private static NetworkReceiver networkIn;
+    private static NetworkHandler networkHandler;
+    private static Transmitter networkOut;
+    private static Receiver networkIn;
+
+    private Node(){}
 
     public static void main(String args[]) throws IOException {
 
@@ -35,22 +39,27 @@ public class Node {
             );
 
             try {
-                int userInput = Integer.parseInt(bufferedReader.readLine());
-
-                switch (userInput) {
-                    case 1:
-                        init();
-                        break;
-                    case 2:
-                        greeting();
-                        break;
-                    case 3:
-                        displayNodeInfo();
-                        break;
-                    default:
-                        System.out.println("Wrong input.\n");
+                String line = bufferedReader.readLine();
+                // Handle empty or space input
+                if (!line.isEmpty() && !line.equals(" ")) {
+                    int userInput = Integer.parseInt(line);
+                    switch (userInput) {
+                        case 1:
+                            init();
+                            break;
+                        case 2:
+                            greeting();
+                            break;
+                        case 3:
+                            displayNodeInfo();
+                            break;
+                        default:
+                            System.out.println("Wrong input.\n");
+                    }
+                } else {
+                    System.out.println("Wrong input.\n");
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -71,40 +80,32 @@ public class Node {
         System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
     }
 
-    private static void greeting() {
-        Response greetingResponse = serverHandler.POSTServerGreeting(nodeInfo);
-        if (greetingResponse.getStatus() == 200) {
+    private static void greeting() throws IOException, InterruptedException {
+        if (nodeInfo != null) {
+            Response greetingResponse = ServerHandler.POSTServerGreeting(nodeInfo);
+            if (greetingResponse.getStatus() == 200) {
+                // Get the node list
+                LinkedList<NodeInfo> nodes = new LinkedList<>();
+                Response nodeListResponse = ServerHandler.GETServerNodeList();
+                String jsonNodeList = nodeListResponse.readEntity(String.class);
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    nodes = mapper.readValue(jsonNodeList, new TypeReference<LinkedList<NodeInfo>>() {});
+                } catch (JsonMappingException e) {
+                    e.printStackTrace();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
 
-            // Star the token receiver thread (gRPC server)
-            Thread receiver = new Thread(new NetworkReceiver(nodeInfo));
-            receiver.start();
+                networkHandler = new NetworkHandler(nodeInfo, nodes);
 
-            // Get the node list
-            Response nodeListResponse = serverHandler.GETServerNodeList();
-            String jsonNodeList = nodeListResponse.readEntity(String.class);
-
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                nodes = mapper.readValue(jsonNodeList, new TypeReference<LinkedList<NodeInfo>>() {
-                });
-            } catch (JsonMappingException e) {
-                e.printStackTrace();
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            } else {
+                System.out.println("\nResponse status: " + greetingResponse.getStatus());
+                System.out.println(greetingResponse.readEntity(String.class) + "\n");
             }
-
-            // If this is not the only node, start a token transmitter thread(gRPC client)
-            if (nodes.size() > 1) {
-
-            }
-
         } else {
-            System.out.println("\nResponse status: " + greetingResponse.getStatus());
-            System.out.println(greetingResponse.readEntity(String.class) + "\n");
+            System.out.println("Initiation needed before greeting to the server!\n");
         }
     }
 
-    public synchronized void getNextNodeInNetwork(NetworkTransmitter networkOut) {
-
-    }
 }

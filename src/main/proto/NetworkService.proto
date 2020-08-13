@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package com.networking.node;
+
+//Compile by executing mvn clean install
+service NetworkService {
+  rpc SendTheToken (stream Token) returns (Message) {};
+
+  rpc Greeting (GreetingMessage) returns (Message) {};
+}
+
+message Token {
+  repeated ProtoNodeInfo toAdd = 1;
+  repeated ProtoNodeInfo toRemove = 2;
+
+  message SensorData {
+    int32 data = 1;
+  }
+}
+
+message ProtoNodeInfo {
+  int32 id = 1;
+  string ip = 2;
+  int32 port = 3;
+}
+
+message Message {
+  string message = 1;
+}
+
+message GreetingMessage {
+  int32 id = 1;
+  string ip = 2;
+  int32 port = 3;
+}
