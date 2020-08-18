@@ -6,8 +6,6 @@ import io.grpc.stub.StreamObserver;
 import jBeans.NodeInfo;
 import nodes.Node;
 
-import java.util.LinkedList;
-
 public class NetworkServiceImpl extends NetworkServiceImplBase {
     Receiver receiver;
 
@@ -37,8 +35,12 @@ public class NetworkServiceImpl extends NetworkServiceImplBase {
     }
 
     @Override
-    public void greeting(GreetingMessage request, StreamObserver<Message> responseObserver) {
-        super.greeting(request, responseObserver);
+    public void greeting(ProtoNodeInfo node, StreamObserver<Message> responseObserver) {
+        receiver.addNode(node);
+
+        responseObserver.onNext(Message.newBuilder().setMessage("Added").build());
+
+        responseObserver.onCompleted();
     }
 
     private void receiveToken(Token token) {

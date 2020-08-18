@@ -4,9 +4,9 @@ package com.networking.node;
 
 //Compile by executing mvn clean install
 service NetworkService {
-  rpc SendTheToken (stream Token) returns (Message) {};
+  rpc sendTheToken (stream Token) returns (Message) {};
 
-  rpc Greeting (GreetingMessage) returns (Message) {};
+  rpc greeting (ProtoNodeInfo) returns (Message) {};
 }
 
 message Token {
@@ -26,10 +26,4 @@ message ProtoNodeInfo {
 
 message Message {
   string message = 1;
-}
-
-message GreetingMessage {
-  int32 id = 1;
-  string ip = 2;
-  int32 port = 3;
 }

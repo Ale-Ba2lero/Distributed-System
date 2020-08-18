@@ -17,6 +17,7 @@ public class NetworkHandler {
 
     public NetworkHandler(NodeInfo nodeInfo, LinkedList<NodeInfo> nodes) throws IOException, InterruptedException {
         this.node = nodeInfo;
+        this.nodes = nodes;
         next = null;
 
         // Start the token receiver thread (gRPC server)
@@ -28,10 +29,16 @@ public class NetworkHandler {
 
         // If this is not the only node, start a token transmitter thread (gRPC client)
         if (nodes.size() > 1) {
+            greeting(nodes, node);
             next = getNextNodeInNetwork(nodes, node);
             transmitter.init(next);
-            transmitter.run();
+            //transmitter.run();
         }
+    }
+
+    public void greeting(LinkedList<NodeInfo> nodes, NodeInfo node) throws InterruptedException {
+        NodeInfo prevNode = getPreviousNodeInNetwork(nodes, node);
+        transmitter.greeting(node, prevNode);
     }
 
     public void receiveToken(Token token) {
@@ -70,12 +77,25 @@ public class NetworkHandler {
         updateNetworkReference();
     }
 
+    public synchronized void addNodeToList(ProtoNodeInfo pnode) {
+        nodes.add(new NodeInfo(pnode.getId(), pnode.getIp(), pnode.getPort()));
+
+        Collections.sort(nodes);
+
+        //TODO update gRPC references
+        updateNetworkReference();
+    }
+
     //Convert the protoNodeInfo obj into NodeInfo obj and remove them from the list
     public synchronized void removeNodesFromList(LinkedList<ProtoNodeInfo> toRemove) {
         toRemove.forEach((pni -> {
             nodes.add(new NodeInfo(pni.getId(), pni.getIp(), pni.getPort()));
         }));
         updateNetworkReference();
+    }
+
+    public LinkedList<NodeInfo> getNodes() {
+        return nodes;
     }
 
     private void updateNetworkReference() {
@@ -92,7 +112,12 @@ public class NetworkHandler {
     }
 
     private static NodeInfo getPreviousNodeInNetwork(LinkedList<NodeInfo> nodes, NodeInfo node) {
-        return nodes.get((getIndex(nodes, node) - 1) % nodes.size());
+        int idx = getIndex(nodes, node);
+        if (idx == 0) {
+            return nodes.get(nodes.size() - 1);
+        } else {
+            return nodes.get(idx - 1);
+        }
     }
 
     private static int getIndex(LinkedList<NodeInfo> nodes, NodeInfo node) {

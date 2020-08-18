@@ -67,13 +67,14 @@ public final class Node {
 
     private static void displayNodeInfo() {
         System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
+        System.out.println(networkHandler.getNodes());
     }
 
     private static void init() {
         System.out.println("\nInit -------------------------");
         Random random = new Random();
         int id = random.nextInt(1000);
-        String ip = "http://localhost/";
+        String ip = "localhost";
         int port = 3000 + random.nextInt(1000);
         nodeInfo = new NodeInfo(id, ip, port);
 
@@ -98,7 +99,6 @@ public final class Node {
                 }
 
                 networkHandler = new NetworkHandler(nodeInfo, nodes);
-
             } else {
                 System.out.println("\nResponse status: " + greetingResponse.getStatus());
                 System.out.println(greetingResponse.readEntity(String.class) + "\n");
@@ -108,4 +108,7 @@ public final class Node {
         }
     }
 
+    public static NodeInfo getNodeInfo() {
+        return nodeInfo;
+    }
 }

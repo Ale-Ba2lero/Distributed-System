@@ -30,4 +30,8 @@ public class Receiver {
     public void receiveToken(Token token) {
         networkHandler.receiveToken(token);
     }
+
+    public void addNode(ProtoNodeInfo node) {
+        networkHandler.addNodeToList(node);
+    }
 }
