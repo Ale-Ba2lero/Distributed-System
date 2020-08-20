@@ -8,26 +8,18 @@ import jBeans.NodeInfo;
 import java.io.IOException;
 
 public class Receiver {
-    private NetworkHandler networkHandler;
-    private NodeInfo nodeInfo;
-    private Server server;
+    private final NetworkHandler networkHandler;
 
-    public Receiver(NetworkHandler networkHandler, NodeInfo nodeInfo) {
+    public Receiver(NetworkHandler networkHandler, NodeInfo nodeInfo) throws IOException {
         this.networkHandler = networkHandler;
-        this.nodeInfo = nodeInfo;
-        server = ServerBuilder.forPort(nodeInfo.getPort()).addService(new NetworkServiceImpl(this)).build();
-    }
-
-    public void start() throws IOException {
+        Server server = ServerBuilder.forPort(nodeInfo.getPort()).addService(new NetworkServiceImpl(this)).build();
         server.start();
-        System.out.println("ID="+nodeInfo.getId()+"---------------------------------");
-        System.out.println(
-                "Network receiver (grpc server) started," +
-                "listening on: "+ nodeInfo.getIp() + ":" + nodeInfo.getPort());
-        System.out.println("---------------------------------------\n");
+
+        System.out.println("Network receiver (grpc server) started listening on: "+ nodeInfo.getIp() + ":" + nodeInfo.getPort());
     }
 
-    public void receiveToken(Token token) {
+    public void receiveToken(ProtoToken token) {
+        System.out.println("Token Received!");
         networkHandler.receiveToken(token);
     }
 

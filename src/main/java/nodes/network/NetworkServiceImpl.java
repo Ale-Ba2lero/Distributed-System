@@ -3,8 +3,6 @@ package nodes.network;
 import com.networking.node.NetworkServiceGrpc.*;
 import com.networking.node.NetworkServiceOuterClass.*;
 import io.grpc.stub.StreamObserver;
-import jBeans.NodeInfo;
-import nodes.Node;
 
 public class NetworkServiceImpl extends NetworkServiceImplBase {
     Receiver receiver;
@@ -14,36 +12,24 @@ public class NetworkServiceImpl extends NetworkServiceImplBase {
     }
 
     @Override
-    public StreamObserver<Token> sendTheToken(StreamObserver<Message> responseObserver) {
-        return new StreamObserver<Token>() {
+    public void sendTheToken(ProtoToken token, StreamObserver<Message> responseObserver) {
+        receiver.receiveToken(token);
 
-            @Override
-            public void onNext(Token token) {
-                receiveToken(token);
-            }
+        responseObserver.onNext(Message.newBuilder().setMessage("Token received").build());
 
-            @Override
-            public void onError(Throwable throwable) {
-                //TODO implement
-            }
-
-            @Override
-            public void onCompleted() {
-                //TODO implement
-            }
-        };
+        responseObserver.onCompleted();
     }
 
     @Override
     public void greeting(ProtoNodeInfo node, StreamObserver<Message> responseObserver) {
         receiver.addNode(node);
 
-        responseObserver.onNext(Message.newBuilder().setMessage("Added").build());
+        responseObserver.onNext(Message.newBuilder().setMessage("Greeting!! :)").build());
 
         responseObserver.onCompleted();
     }
 
-    private void receiveToken(Token token) {
+    private void receiveToken(ProtoToken token) {
         receiver.receiveToken(token);
     }
 }

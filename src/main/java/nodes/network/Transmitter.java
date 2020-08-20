@@ -13,82 +13,69 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 public class Transmitter implements Runnable {
-    StreamObserver<Token> tokenStream;
+
+    private final NetworkHandler networkHandler;
+    private ManagedChannel channel;
+    private NodeInfo node;
+
+    public Transmitter(NetworkHandler networkHandler, NodeInfo node) {
+        this.networkHandler = networkHandler;
+        this.node = node;
+    }
+
+    //initialize or reinitialize the target node reference that will receive the tokens
+    public void init() {
+        if (channel != null) {
+            channel.shutdownNow();
+        }
+        //plaintext channel on the address (ip/port) which offers the GreetingService service
+        channel = ManagedChannelBuilder.forTarget(networkHandler.getTarget().getIp() + ":" + networkHandler.getTarget().getPort()).usePlaintext(true).build();
+    }
 
     @Override
     public void run() {
-        try {
-            this.wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        System.out.println("Transmitter is running");
+
+        while (true) {
+            try {
+                synchronized (this) {
+                    this.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            long start = System.currentTimeMillis();
+            init();
+            long stop = System.currentTimeMillis();
+
+            System.out.println(stop-start);
+
+            NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
+            System.out.println("Send token");
+            stub.sendTheToken(tokenBuild((networkHandler.getToken())));
         }
-
-        sendToken(new LinkedList<NodeInfo>(), new LinkedList<NodeInfo>());
     }
 
-    public void greeting(NodeInfo nodeInfo, NodeInfo targetNode) throws InterruptedException {
+    //contact a node on the list and inform it about the new node
+    public void greeting() {
+        System.out.println("So i started greeting");
 
-        //plaintext channel on the address (ip/port) which offers the GreetingService service
-        final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetNode.getIp() + ":" + targetNode.getPort()).usePlaintext(true).build();
+        init();
 
-        //creating an asynchronous stub on the channel
-        NetworkServiceStub stub = NetworkServiceGrpc.newStub(channel);
+        NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
 
-        //creating the HelloResponse object which will be provided as input to the RPC method
-        ProtoNodeInfo info = ProtoNodeInfo.newBuilder().setIp(nodeInfo.getIp()).setId(nodeInfo.getId()).setPort(nodeInfo.getPort()).build();
+        ProtoNodeInfo info = ProtoNodeInfo.newBuilder().setIp(node.getIp()).setId(node.getId()).setPort(node.getPort()).build();
 
-        //calling the RPC method. since it is asynchronous, we need to define handlers
-        stub.greeting(info , new StreamObserver<Message>() {
+        Message message = stub.greeting(info);
 
-            @Override
-            public void onNext(Message message) {
-                System.out.println(message.getMessage());
-            }
-
-            //if there are some errors, this method will be called
-            public void onError(Throwable throwable) {
-
-                System.out.println("Error! "+throwable.getMessage());
-
-            }
-
-            //when the stream is completed (the server called "onCompleted") just close the channel
-            public void onCompleted() {
-                channel.shutdownNow();
-            }
-
-        });
-
-        //you need this. otherwise the method will terminate before that answers from the server are received
-        channel.awaitTermination(5, TimeUnit.SECONDS);
+        System.out.println(message.getMessage());
     }
 
-    public void init(NodeInfo node) {
-        //plaintext channel on the address (ip/port) which offers the GreetingService service
-        final ManagedChannel channel = ManagedChannelBuilder.forTarget(node.getIp() + ":" + node.getPort()).usePlaintext(true).build();
+    public ProtoToken tokenBuild(Token token) {
+        LinkedList<NodeInfo> toAdd = token.getToAdd();
+        LinkedList<NodeInfo> toRemove = token.getToRemove();
 
-        //creating an asynchronous stub on the channel
-        NetworkServiceStub stub = NetworkServiceGrpc.newStub(channel);
-
-        tokenStream = stub.sendTheToken(new StreamObserver<Message>() {
-            @Override
-            public void onNext(Message message) {
-                //TODO
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                //TODO
-            }
-
-            @Override
-            public void onCompleted() {
-                //TODO
-            }
-        });
-    }
-
-    public Token tokenBuild(LinkedList<NodeInfo> toAdd, LinkedList<NodeInfo> toRemove) {
         ArrayList<ProtoNodeInfo> protoToAdd = new ArrayList<>();
         toAdd.forEach((nodeInfo -> {
             protoToAdd.add(ProtoNodeInfo
@@ -109,20 +96,12 @@ public class Transmitter implements Runnable {
                     .build());
         }));
 
-        Token.Builder token = Token.newBuilder();
-        token.addAllToAdd(protoToAdd);
-        token.addAllToRemove(protoToRemove);
+        ProtoToken.Builder protoToken = ProtoToken.newBuilder();
+        protoToken.addAllToAdd(protoToAdd);
+        protoToken.addAllToRemove(protoToRemove);
 
         //TODO build token sensor data field
 
-        return token.build();
-    }
-
-    private void sendToken(LinkedList<NodeInfo> toAdd, LinkedList<NodeInfo> toRemove) {
-        tokenStream.onNext(tokenBuild(toAdd, toRemove));
-    }
-
-    public void closeConnection() {
-        tokenStream.onCompleted();
+        return protoToken.build();
     }
 }

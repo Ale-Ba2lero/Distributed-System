@@ -2,12 +2,9 @@ package nodes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
 import nodes.network.NetworkHandler;
-import nodes.network.Receiver;
-import nodes.network.Transmitter;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -20,22 +17,19 @@ public final class Node {
     private static NodeInfo nodeInfo;
 
     private static NetworkHandler networkHandler;
-    private static Transmitter networkOut;
-    private static Receiver networkIn;
 
     private Node(){}
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-        boolean run = true;
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
-        while (run) {
-            System.out.println("Node Main ----------------------------------------\n" +
-                "1: Init.\n" +
-                "2: Greet the server.\n" +
-                "3: Show node info.\n"
+        while (true) {
+            System.out.println("----------------------------------------\n" +
+                "0 : start node" +
+                "\n1 : show node info" +
+                "\n2 : start token loop"
             );
 
             try {
@@ -44,14 +38,15 @@ public final class Node {
                 if (!line.isEmpty() && !line.equals(" ")) {
                     int userInput = Integer.parseInt(line);
                     switch (userInput) {
+                        case 0:
+                            nodeInit();
+                            serverGreeting();
+                            break;
                         case 1:
-                            init();
+                            displayNodeInfo();
                             break;
                         case 2:
-                            greeting();
-                            break;
-                        case 3:
-                            displayNodeInfo();
+                            networkHandler.startTokenLoop();
                             break;
                         default:
                             System.out.println("Wrong input.\n");
@@ -59,29 +54,28 @@ public final class Node {
                 } else {
                     System.out.println("Wrong input.\n");
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException  e) {
                 e.printStackTrace();
             }
         }
     }
 
     private static void displayNodeInfo() {
-        System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
-        System.out.println(networkHandler.getNodes());
+        System.out.println("Node info: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort());
+        System.out.println("Nodes list: " + networkHandler.getNodes());
+        System.out.println("Next node: " + networkHandler.getTarget());
     }
 
-    private static void init() {
-        System.out.println("\nInit -------------------------");
+    private static void nodeInit() {
         Random random = new Random();
         int id = random.nextInt(1000);
         String ip = "localhost";
         int port = 3000 + random.nextInt(1000);
         nodeInfo = new NodeInfo(id, ip, port);
-
-        System.out.print("Id= " + nodeInfo.getId() + "\nIp= " + nodeInfo.getIp() + "\nPort= " + nodeInfo.getPort() + "\n\n");
+        System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
     }
 
-    private static void greeting() throws IOException, InterruptedException {
+    private static void serverGreeting() throws IOException, InterruptedException {
         if (nodeInfo != null) {
             Response greetingResponse = ServerHandler.POSTServerGreeting(nodeInfo);
             if (greetingResponse.getStatus() == 200) {
@@ -92,8 +86,6 @@ public final class Node {
                 ObjectMapper mapper = new ObjectMapper();
                 try {
                     nodes = mapper.readValue(jsonNodeList, new TypeReference<LinkedList<NodeInfo>>() {});
-                } catch (JsonMappingException e) {
-                    e.printStackTrace();
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -104,11 +96,7 @@ public final class Node {
                 System.out.println(greetingResponse.readEntity(String.class) + "\n");
             }
         } else {
-            System.out.println("Initiation needed before greeting to the server!\n");
+            System.out.println("Error!!: Node not initialized!\n");
         }
-    }
-
-    public static NodeInfo getNodeInfo() {
-        return nodeInfo;
     }
 }

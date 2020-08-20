@@ -4,12 +4,12 @@ package com.networking.node;
 
 //Compile by executing mvn clean install
 service NetworkService {
-  rpc sendTheToken (stream Token) returns (Message) {};
+  rpc sendTheToken (ProtoToken) returns (Message) {};
 
   rpc greeting (ProtoNodeInfo) returns (Message) {};
 }
 
-message Token {
+message ProtoToken {
   repeated ProtoNodeInfo toAdd = 1;
   repeated ProtoNodeInfo toRemove = 2;
 
