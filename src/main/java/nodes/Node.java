@@ -22,7 +22,9 @@ public final class Node {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        InputStreamReader streamReader = new InputStreamReader(System.in);
+        nodeInit();
+        serverGreeting();
+        /*InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
         while (true) {
@@ -57,7 +59,7 @@ public final class Node {
             } catch (IOException  e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     private static void displayNodeInfo() {

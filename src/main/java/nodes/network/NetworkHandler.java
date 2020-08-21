@@ -16,53 +16,71 @@ public class NetworkHandler {
     private NodeInfo next;
     private Token token;
 
+    private final LinkedList<NodeInfo> greetingNodes;
 
-    public NetworkHandler(NodeInfo nodeInfo, LinkedList<NodeInfo> nodes) throws IOException, InterruptedException {
+    public NetworkHandler(NodeInfo nodeInfo, LinkedList<NodeInfo> nodes) throws IOException {
         this.node = nodeInfo;
         this.nodes = nodes;
         next = null;
+        this.greetingNodes = new LinkedList<>();
 
         // Start the token receiver thread (gRPC server)
-        Receiver receiver = new Receiver(this, nodeInfo);
+        new Receiver(this, nodeInfo);
 
         // Instantiate the token transmitter
         transmitter = new Transmitter(this, node);
+        Thread transmitterThread = new Thread(transmitter);
 
         // If this is not the only node, start a token transmitter thread (gRPC client)
         if (nodes.size() > 1) {
             next = getNextNodeInNetwork(nodes, node);
             transmitter.greeting();
+        } else {
+            token = new Token(new LinkedList<>(), new LinkedList<>(), node);
         }
 
-        transmitter.run();
+        transmitterThread.run();
     }
 
-    public void receiveToken(ProtoToken ptotoToken) {
+    public void receiveToken(ProtoToken protoToken) {
         //TODO handle token measurements
 
         //Get information about network changes from the token
-        List<ProtoNodeInfo> toAdd = ptotoToken.getToAddList();
-        List<ProtoNodeInfo> toRemove = ptotoToken.getToRemoveList();
+        List<ProtoNodeInfo> toAdd = protoToken.getToAddList();
+        List<ProtoNodeInfo> toRemove = protoToken.getToRemoveList();
+
+        List<ProtoNodeInfo> tokenNodesToAdd = new LinkedList<>();
+        List<ProtoNodeInfo> tokenNodesToRemove = new LinkedList<>();
 
         //If there are nodes to add, make a call to the network handler to add the new nodes
         if (toAdd.size() > 0) {
-            addNodesToList(toAdd);
+            System.out.println("Adding nodes");
+            toAdd.forEach(protoNodeInfo -> {
+                if (protoNodeInfo.getId() != node.getId()) {
+                    nodes.add(new NodeInfo(protoNodeInfo.getId(), protoNodeInfo.getIp(), protoNodeInfo.getPort()));
+                    tokenNodesToAdd.add(protoNodeInfo);
+                }
+            });
+
+            Collections.sort(nodes);
+            //update gRPC references
+            updateNetworkReference();
         }
 
-        //prepare the token
-        token = new Token(toAdd, toRemove, node);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        token = new Token(tokenNodesToAdd, tokenNodesToRemove, node);
+
+        if (greetingNodes.size() > 0) {
+            addGreetingNodesToList();
         }
+
         //send the token
         tokenReady();
 
         //If there are nodes to remove, make a call to the network handler to remove the new nodes
+        /*
         if (toRemove.size() > 0) {
             removeNodesFromList(toRemove);
-        }
+        }*/
     }
 
     public void tokenReady() {
@@ -71,43 +89,40 @@ public class NetworkHandler {
         }
     }
 
-    //Convert the protoNodeInfo obj into NodeInfo obj and add them to the list
-    public synchronized void addNodesToList(List<ProtoNodeInfo> toAdd) {
-        toAdd.forEach((pni -> {
-            if (pni.getId() != node.getId()) {
-                nodes.add(new NodeInfo(pni.getId(), pni.getIp(), pni.getPort()));
-            }
-        }));
-
-        Collections.sort(nodes);
-        //update gRPC references
-        updateNetworkReference();
+    private synchronized void addGreetingNodesToList() {
+        greetingNodes.forEach(node -> token.setNodeToAdd(node));
+        greetingNodes.clear();
     }
 
-    public synchronized void addNodeToList(ProtoNodeInfo pnode) {
-        nodes.add(new NodeInfo(pnode.getId(), pnode.getIp(), pnode.getPort()));
-
+    public synchronized void addNodeToList(ProtoNodeInfo protoNodeInfo) {
+        NodeInfo newNode = new NodeInfo(protoNodeInfo.getId(), protoNodeInfo.getIp(), protoNodeInfo.getPort());
+        nodes.add(newNode);
+        greetingNodes.add(newNode);
         Collections.sort(nodes);
 
         //TODO update gRPC references
         updateNetworkReference();
+
+        System.out.println("Adding " + protoNodeInfo.getId());
+        System.out.println(nodes);
     }
 
     //Convert the protoNodeInfo obj into NodeInfo obj and remove them from the list
-    public synchronized void removeNodesFromList(List<ProtoNodeInfo> toRemove) {
-        toRemove.forEach((pni -> {
-            nodes.forEach(n -> {
-                if (n.getId() == pni.getId() && n.getId() != node.getId()) {
-                    nodes.remove(n);
-                } else if (n.getId() == pni.getId() && n.getId() == node.getId()) {
-                    quitNetwork();
-                }
-            });
-        }));
+
+    /*public synchronized void removeNodesFromList(List<ProtoNodeInfo> toRemove) {
+         toRemove.forEach((pni -> nodes.forEach(n -> {
+            if (n.getId() == pni.getId() && n.getId() != node.getId()) {
+                nodes.remove(n);
+            } else if (n.getId() == pni.getId() && n.getId() == node.getId()) {
+                quitNetwork();
+            }
+        })));
 
         //update gRPC references
         updateNetworkReference();
     }
+    */
+
 
     public LinkedList<NodeInfo> getNodes() {
         return nodes;
@@ -121,12 +136,6 @@ public class NetworkHandler {
         return token;
     }
 
-    public void startTokenLoop() {
-        token = new Token(new LinkedList<>(), new LinkedList<>(), node);
-        tokenReady();
-        System.out.println("Starting token loop");
-    }
-
     private void quitNetwork() {
         //TODO
     }
@@ -135,9 +144,10 @@ public class NetworkHandler {
         NodeInfo newNext = getNextNodeInNetwork(nodes, this.node);
         if (next != null && newNext.getId() != next.getId()) {
             next = newNext;
+            System.out.println("Updating target node to " + next.getId());
         } else if (next == null) {
+            System.out.println("Starting token loop!");
             next = newNext;
-            transmitter.run();
             tokenReady();
         }
     }
@@ -146,6 +156,7 @@ public class NetworkHandler {
         return nodes.get((getIndex(nodes, node) + 1) % nodes.size());
     }
 
+    /*
     private static NodeInfo getPreviousNodeInNetwork(LinkedList<NodeInfo> nodes, NodeInfo node) {
         int idx = getIndex(nodes, node);
         if (idx == 0) {
@@ -154,6 +165,7 @@ public class NetworkHandler {
             return nodes.get(idx - 1);
         }
     }
+    */
 
     private static int getIndex(LinkedList<NodeInfo> nodes, NodeInfo node) {
         int i;

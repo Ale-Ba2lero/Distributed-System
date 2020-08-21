@@ -14,22 +14,14 @@ public class NetworkServiceImpl extends NetworkServiceImplBase {
     @Override
     public void sendTheToken(ProtoToken token, StreamObserver<Message> responseObserver) {
         receiver.receiveToken(token);
-
         responseObserver.onNext(Message.newBuilder().setMessage("Token received").build());
-
         responseObserver.onCompleted();
     }
 
     @Override
     public void greeting(ProtoNodeInfo node, StreamObserver<Message> responseObserver) {
-        receiver.addNode(node);
-
-        responseObserver.onNext(Message.newBuilder().setMessage("Greeting!! :)").build());
-
+        receiver.greeting(node);
+        responseObserver.onNext(Message.newBuilder().setMessage("Welcome!").build());
         responseObserver.onCompleted();
-    }
-
-    private void receiveToken(ProtoToken token) {
-        receiver.receiveToken(token);
     }
 }
