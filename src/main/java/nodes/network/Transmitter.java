@@ -6,6 +6,7 @@ import com.networking.node.NetworkServiceOuterClass.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import jBeans.NodeInfo;
+import nodes.network.messages.Token;
 
 public class Transmitter implements Runnable {
 
@@ -35,12 +36,14 @@ public class Transmitter implements Runnable {
                 channel.shutdownNow();
             }
             //plaintext channel on the address (ip/port) which offers the GreetingService service
-            channel = ManagedChannelBuilder.forTarget(networkHandler.getTarget().getIp() + ":" + networkHandler.getTarget().getPort()).usePlaintext(true).build();
+            channel = ManagedChannelBuilder
+                    .forTarget(networkHandler.getTarget().getIp() + ":" + networkHandler.getTarget().getPort())
+                    .usePlaintext(true).build();
             NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
             stub.sendTheToken(Token.tokenBuild(networkHandler.getToken(), node));
 
             // The following instruction could be the cause of issues with the token
-            //System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId() + " " + System.currentTimeMillis());
+            System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId() + " " + System.currentTimeMillis());
         }
     }
 

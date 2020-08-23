@@ -1,4 +1,4 @@
-package nodes.network;
+package nodes.network.messages;
 
 import com.networking.node.NetworkServiceOuterClass.*;
 import jBeans.NodeInfo;
@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Token {
+public class Token extends NetworkMessage {
+    private final NodeInfo node;
     private final LinkedList<NodeInfo> toAdd;
     private final LinkedList<NodeInfo> toRemove;
 
-    public Token(List<ProtoNodeInfo> toAddNodeList, List<ProtoNodeInfo> toRemoveNodeList, NodeInfo node) {
+    public Token(MessageType type, List<NodeInfo> toAddNodeList, List<NodeInfo> toRemoveNodeList, NodeInfo node) {
+        super(type);
+
+        this.node = node;
         toAdd = new LinkedList<>();
         toRemove = new LinkedList<>();
 
@@ -26,10 +30,6 @@ public class Token {
                 toRemove.add(new NodeInfo(protoNodeInfo.getId(), protoNodeInfo.getIp(),protoNodeInfo.getPort()));
             }
         });
-    }
-
-    public void setNodeToAdd(NodeInfo nodeInfo) {
-        toAdd.add(nodeInfo);
     }
 
     public LinkedList<NodeInfo> getToAdd() {
@@ -58,9 +58,9 @@ public class Token {
         toRemove.forEach((nodeInfo -> {
             protoToRemove.add(ProtoNodeInfo
                     .newBuilder()
-                    .setId(nodeInfo.getId())
-                    .setIp(nodeInfo.getIp())
-                    .setPort(nodeInfo.getPort())
+                    .setId(node.getId())
+                    .setIp(node.getIp())
+                    .setPort(node.getPort())
                     .build());
         }));
 
@@ -68,10 +68,28 @@ public class Token {
         protoToken.addAllToAdd(protoToAdd);
         protoToken.addAllToRemove(protoToRemove);
 
-        protoToken.setFrom(node.getId());
+        protoToken.setFrom(ProtoNodeInfo
+                .newBuilder()
+                .setId(node.getId())
+                .setIp(node.getIp())
+                .setPort(node.getPort())
+                .build());
 
         //TODO build token sensor data field
-
         return protoToken.build();
+    }
+
+    public NodeInfo getNode() {
+        return node;
+    }
+
+    public static LinkedList<NodeInfo> fromProtoToNode (List<ProtoNodeInfo> protoNodeInfo) {
+        LinkedList<NodeInfo> nodeList = new LinkedList<>();
+
+        protoNodeInfo.forEach(pni -> {
+            nodeList.add(new NodeInfo(pni.getId(), pni.getIp(), pni.getPort()));
+        });
+
+        return nodeList;
     }
 }

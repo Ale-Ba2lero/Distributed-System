@@ -5,11 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
 import nodes.network.NetworkHandler;
-
 import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -17,10 +14,9 @@ public final class Node {
     private static NodeInfo nodeInfo;
 
     private static NetworkHandler networkHandler;
-
     private Node(){}
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
 
         nodeInit();
         serverGreeting();
@@ -29,9 +25,8 @@ public final class Node {
 
         while (true) {
             System.out.println("----------------------------------------\n" +
-                "0 : start node" +
-                "\n1 : show node info" +
-                "\n2 : start token loop"
+                "1 : start node\n" +
+                "2 : stop node\n"
             );
 
             try {
@@ -40,15 +35,12 @@ public final class Node {
                 if (!line.isEmpty() && !line.equals(" ")) {
                     int userInput = Integer.parseInt(line);
                     switch (userInput) {
-                        case 0:
+                        case 1:
                             nodeInit();
                             serverGreeting();
                             break;
-                        case 1:
-                            displayNodeInfo();
-                            break;
                         case 2:
-                            networkHandler.startTokenLoop();
+                            stopNode();
                             break;
                         default:
                             System.out.println("Wrong input.\n");
@@ -62,12 +54,6 @@ public final class Node {
         }*/
     }
 
-    private static void displayNodeInfo() {
-        System.out.println("Node info: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort());
-        System.out.println("Nodes list: " + networkHandler.getNodes());
-        System.out.println("Next node: " + networkHandler.getTarget());
-    }
-
     private static void nodeInit() {
         Random random = new Random();
         int id = random.nextInt(1000);
@@ -77,7 +63,7 @@ public final class Node {
         System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
     }
 
-    private static void serverGreeting() throws IOException, InterruptedException {
+    private static void serverGreeting() throws IOException {
         if (nodeInfo != null) {
             Response greetingResponse = ServerHandler.POSTServerGreeting(nodeInfo);
             if (greetingResponse.getStatus() == 200) {
@@ -92,7 +78,8 @@ public final class Node {
                     e.printStackTrace();
                 }
 
-                networkHandler = new NetworkHandler(nodeInfo, nodes);
+                nodeStart(nodes);
+
             } else {
                 System.out.println("\nResponse status: " + greetingResponse.getStatus());
                 System.out.println(greetingResponse.readEntity(String.class) + "\n");
@@ -100,5 +87,12 @@ public final class Node {
         } else {
             System.out.println("Error!!: Node not initialized!\n");
         }
+    }
+
+    private static void nodeStart(LinkedList<NodeInfo> nodes) throws IOException {
+        networkHandler = new NetworkHandler(nodeInfo);
+        networkHandler.init(nodes);
+        Thread networkHandlerThread = new Thread(networkHandler);
+        networkHandlerThread.start();
     }
 }
