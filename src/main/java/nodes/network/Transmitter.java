@@ -35,6 +35,7 @@ public class Transmitter implements Runnable {
             if (channel != null) {
                 channel.shutdownNow();
             }
+
             //plaintext channel on the address (ip/port) which offers the GreetingService service
             channel = ManagedChannelBuilder
                     .forTarget(networkHandler.getTarget().getIp() + ":" + networkHandler.getTarget().getPort())
@@ -43,13 +44,13 @@ public class Transmitter implements Runnable {
             stub.sendTheToken(Token.tokenBuild(networkHandler.getToken(), node));
 
             // The following instruction could be the cause of issues with the token
-            System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId() + " " + System.currentTimeMillis());
+            System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId() + "   " + System.currentTimeMillis());
         }
     }
 
     //contact a node on the list and inform it about the new node
     public void greeting() {
-        System.out.println("Greeting to " + networkHandler.getTarget().getId());
+        System.out.println("Greeting to " + networkHandler.getTarget().getId() + "   " + System.currentTimeMillis());
         if (channel != null) {
             channel.shutdownNow();
         }

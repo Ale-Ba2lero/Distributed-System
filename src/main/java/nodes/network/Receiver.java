@@ -25,6 +25,7 @@ public class Receiver {
     }
 
     public void receiveToken(ProtoToken protoToken) {
+        System.out.println("Token Received from " + protoToken.getFrom().getId() + "   " + System.currentTimeMillis());
         Token token = new Token(
             MessageType.TOKEN,
             Token.fromProtoToNode(protoToken.getToAddList()),
@@ -42,6 +43,7 @@ public class Receiver {
     }
 
     public void greeting(ProtoNodeInfo node) {
+        System.out.println("Greeting received from " + node.getId() +  "   " + System.currentTimeMillis());
         synchronized (messagesQueue) {
             messagesQueue.add(
                     new GreetingMessage(
@@ -60,9 +62,11 @@ public class Receiver {
         }
     }
 
-    public synchronized ArrayList<NetworkMessage> getMessagesQueue() {
-        ArrayList<NetworkMessage> queue = new ArrayList<>(messagesQueue);
-        messagesQueue.clear();
-        return queue;
+    public ArrayList<NetworkMessage> getMessagesQueue() {
+        synchronized (messagesQueue) {
+            ArrayList<NetworkMessage> queue = new ArrayList<>(messagesQueue);
+            messagesQueue.clear();
+            return queue;
+        }
     }
 }

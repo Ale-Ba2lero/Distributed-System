@@ -10,32 +10,40 @@ import java.io.IOException;
 import java.util.*;
 
 public class NetworkHandler implements Runnable{
-    private NodeInfo node;
-    private LinkedList<NodeInfo> nodes;
-    private Transmitter transmitter;
-    private Receiver receiver;
+    private final NodeInfo node;
 
+    private final LinkedList<NodeInfo> nodes;
+    private final Transmitter transmitter;
+    private final Receiver receiver;
+
+    private final Object networkReferenceLock;
     private NodeInfo next;
+
+    private final Object tokenLock;
     private Token token;
 
-    private final LinkedList<NodeInfo> greetingNodes;
+    private final ArrayList<NodeInfo> greetingNodes;
 
-    public NetworkHandler(NodeInfo nodeInfo) {
+    public NetworkHandler(NodeInfo nodeInfo) throws IOException {
         node = nodeInfo;
-        greetingNodes = new LinkedList<>();
-    }
+        nodes = new LinkedList<>();
+        greetingNodes = new ArrayList<>();
 
-    // If this is not the only node, start a token transmitter thread (gRPC client)
-    public void init(LinkedList<NodeInfo> nodes) throws IOException {
-        this.nodes = nodes;
+        networkReferenceLock = new Object();
+        tokenLock = new Object();
 
         transmitter = new Transmitter(this, node);
         receiver = new Receiver(this, node);
+    }
+
+    // If this is not the only node, start a token transmitter thread (gRPC client)
+    public void init(LinkedList<NodeInfo> nodeList) {
+        this.nodes.addAll(nodeList);
 
         Thread transmitterThread = new Thread(transmitter);
 
         if (nodes.size() > 1) {
-            next = getNextNodeInNetwork(nodes, node);
+            next = getNextNodeInNetwork();
             transmitter.greeting();
         } else {
             next = null;
@@ -56,6 +64,7 @@ public class NetworkHandler implements Runnable{
                 synchronized (this) {
                     this.wait();
                 }
+
                 ArrayList<NetworkMessage> queue = receiver.getMessagesQueue();
                 queue.forEach(msg -> {
                     switch (msg.getType()) {
@@ -76,12 +85,11 @@ public class NetworkHandler implements Runnable{
         }
     }
 
-    public synchronized void computeToken(Token receivedToken) {
-        System.out.println("Token Received from " + receivedToken.getNode().getId() + " " + System.currentTimeMillis());
+    private synchronized void computeToken(Token receivedToken) {
         //TODO handle token measurements
 
-        List<NodeInfo> tokenNodesToAdd = new LinkedList<>();
-        List<NodeInfo> tokenNodesToRemove = new LinkedList<>();
+        ArrayList<NodeInfo> tokenNodesToAdd = new ArrayList<>();
+        ArrayList<NodeInfo> tokenNodesToRemove = new ArrayList<>();
 
         //If there are nodes to add, make a call to the network handler to add the new nodes
         if (receivedToken.getToAdd().size() > 0) {
@@ -98,18 +106,12 @@ public class NetworkHandler implements Runnable{
             updateNetworkReference();
         }
 
-        tokenNodesToAdd.addAll(greetingNodes);
+        tokenNodesToAdd.addAll(new ArrayList<>(greetingNodes));
+
         greetingNodes.clear();
+
         token = new Token(MessageType.TOKEN, tokenNodesToAdd, tokenNodesToRemove, node);
 
-
-        /*try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-
-        //send the token
         tokenReady();
 
         //If there are nodes to remove, make a call to the network handler to remove the new nodes
@@ -119,46 +121,33 @@ public class NetworkHandler implements Runnable{
         }*/
     }
 
+    // The entry token has been handled and is ready to be sent to the next node
     private void tokenReady() {
         synchronized (transmitter) {
             transmitter.notify();
         }
     }
 
-    public synchronized void insertGreetingNodeToNetwork(GreetingMessage message) {
-        NodeInfo nodeInfo = message.getNodeInfo();
-        System.out.println("Greeting received from " + nodeInfo.getId());
-        sortedAdd(nodes, nodeInfo);
-        greetingNodes.add(nodeInfo);
-        updateNetworkReference();
-    }
-
-    public synchronized NodeInfo getTarget() {
-        return next;
-    }
-
-    public synchronized Token getToken() {
-        return token;
-    }
-
     // Updates the node reference inside the network. This means set the new target node that will receive the token.
     private void updateNetworkReference() {
-
-        NodeInfo newNext = getNextNodeInNetwork(nodes, this.node);
-        if (next != null && newNext.getId() != next.getId()) {
-            next = newNext;
-            System.out.println("Updating target node to " + next.getId());
-        } else if (next == null) {
-            // If next is null this means this was the first node entering the network and now is updating its references
-            // due to an other node greeting to it. Now the network contains two nodes and the token loop can start.
-            System.out.println("Starting token loop!");
-            next = newNext;
-            tokenReady();
+        NodeInfo newNext = getNextNodeInNetwork();
+        synchronized (networkReferenceLock) {
+            if (next != null && newNext.getId() != next.getId()) {
+                next = newNext;
+            } else if (next == null) {
+                // If next is null this means this was the first node entering the network and now is updating its references
+                // due to an other node greeting to it. Now the network contains two nodes and the token loop can start.
+                next = newNext;
+                tokenReady();
+            }
         }
     }
 
-    private static NodeInfo getNextNodeInNetwork(LinkedList<NodeInfo> nodes, NodeInfo node) {
-        return nodes.get((getIndex(nodes, node) + 1) % nodes.size());
+    private NodeInfo getNextNodeInNetwork() {
+        synchronized (nodes) {
+            NodeInfo next = nodes.get((getIndex(nodes, node) + 1) % nodes.size());
+            return new NodeInfo(next.getId(),next.getIp(), next.getPort());
+        }
     }
 
     private static int getIndex(LinkedList<NodeInfo> nodes, NodeInfo node) {
@@ -171,15 +160,34 @@ public class NetworkHandler implements Runnable{
         return -1;
     }
 
-    public NodeInfo getNode() {
-        return node;
-    }
-
     private void sortedAdd(List<NodeInfo> list, NodeInfo element) {
         int index = Collections.binarySearch(list, element, Comparator.comparing(NodeInfo::getId));
         if (index < 0) {
             index = -index - 1;
         }
         list.add(index, element);
+    }
+
+    public synchronized void insertGreetingNodeToNetwork(GreetingMessage message) {
+        NodeInfo nodeInfo = message.getNodeInfo();
+        sortedAdd(nodes, nodeInfo);
+        greetingNodes.add(nodeInfo);
+        updateNetworkReference();
+    }
+
+    public NodeInfo getTarget() {
+        synchronized (networkReferenceLock) {
+            return new NodeInfo(next.getId(), next.getIp(), next.getPort());
+        }
+    }
+
+    public Token getToken() {
+        synchronized (tokenLock) {
+            return token;
+        }
+    }
+
+    public NodeInfo getNode() {
+        return node;
     }
  }
