@@ -14,9 +14,14 @@ import java.util.ArrayList;
 
 public class Receiver {
     private final NetworkHandler networkHandler;
-    private ArrayList<NetworkMessage> messagesQueue;
+    private final ArrayList<NetworkMessage> messagesQueue;
+
+    private static Object tokenLoopLock;
+    private boolean tokenLoop;
 
     public Receiver(NetworkHandler networkHandler,NodeInfo nodeInfo) throws IOException {
+        tokenLoopLock = new Object();
+        this.tokenLoop = false;
         this.networkHandler = networkHandler;
         this.messagesQueue = new ArrayList<>();
         Server server = ServerBuilder.forPort(nodeInfo.getPort()).addService(new NetworkServiceImpl(this)).build();
@@ -25,12 +30,13 @@ public class Receiver {
     }
 
     public void receiveToken(ProtoToken protoToken) {
-        System.out.println("Token Received from " + protoToken.getFrom().getId() + "   " + System.currentTimeMillis());
+        System.out.println("[" + networkHandler.getNode().getId() + "] Token " + protoToken.getLoop() + " received from " + protoToken.getFrom().getId());
         Token token = new Token(
             MessageType.TOKEN,
             Token.fromProtoToNode(protoToken.getToAddList()),
             Token.fromProtoToNode(protoToken.getToRemoveList()),
-            new NodeInfo(protoToken.getFrom().getId(), protoToken.getFrom().getIp(), protoToken.getFrom().getPort())
+            new NodeInfo(protoToken.getFrom().getId(), protoToken.getFrom().getIp(), protoToken.getFrom().getPort()),
+            protoToken.getLoop()
         );
 
         synchronized (messagesQueue) {
@@ -43,22 +49,29 @@ public class Receiver {
     }
 
     public void greeting(ProtoNodeInfo node) {
-        System.out.println("Greeting received from " + node.getId() +  "   " + System.currentTimeMillis());
+        System.out.println("Greeting received from " + node.getId());
         synchronized (messagesQueue) {
             messagesQueue.add(
-                    new GreetingMessage(
-                            MessageType.GREETING,
-                            new NodeInfo(
-                                    node.getId(),
-                                    node.getIp(),
-                                    node.getPort()
-                            )
+                new GreetingMessage(
+                    MessageType.GREETING,
+                    new NodeInfo(
+                        node.getId(),
+                        node.getIp(),
+                        node.getPort()
                     )
+                )
             );
         }
 
-        synchronized (networkHandler){
-            networkHandler.notify();
+        synchronized (tokenLoopLock) {
+            if (!tokenLoop) {
+
+                synchronized (networkHandler) {
+                    networkHandler.notify();
+                }
+
+                tokenLoop = true;
+            }
         }
     }
 
@@ -67,6 +80,12 @@ public class Receiver {
             ArrayList<NetworkMessage> queue = new ArrayList<>(messagesQueue);
             messagesQueue.clear();
             return queue;
+        }
+    }
+
+    public void setTokenLoop(boolean state) {
+        synchronized (tokenLoopLock) {
+            tokenLoop = state;
         }
     }
 }

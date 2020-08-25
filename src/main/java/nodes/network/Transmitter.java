@@ -43,14 +43,13 @@ public class Transmitter implements Runnable {
             NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
             stub.sendTheToken(Token.tokenBuild(networkHandler.getToken(), node));
 
-            // The following instruction could be the cause of issues with the token
-            System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId() + "   " + System.currentTimeMillis());
+            //System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId());
         }
     }
 
     //contact a node on the list and inform it about the new node
     public void greeting() {
-        System.out.println("Greeting to " + networkHandler.getTarget().getId() + "   " + System.currentTimeMillis());
+        System.out.println("Greeting to " + networkHandler.getTarget().getId());
         if (channel != null) {
             channel.shutdownNow();
         }
@@ -60,7 +59,6 @@ public class Transmitter implements Runnable {
         NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
         ProtoNodeInfo info = ProtoNodeInfo.newBuilder().setIp(node.getIp()).setId(node.getId()).setPort(node.getPort()).build();
         Message message = stub.greeting(info);
-
-        System.out.println(message.getMessage());
+        //System.out.println(message.getMessage());
     }
 }

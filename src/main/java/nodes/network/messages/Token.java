@@ -11,10 +11,12 @@ public class Token extends NetworkMessage {
     private final NodeInfo node;
     private final LinkedList<NodeInfo> toAdd;
     private final LinkedList<NodeInfo> toRemove;
+    private final Long loop;
 
-    public Token(MessageType type, List<NodeInfo> toAddNodeList, List<NodeInfo> toRemoveNodeList, NodeInfo node) {
+    public Token(MessageType type, List<NodeInfo> toAddNodeList, List<NodeInfo> toRemoveNodeList, NodeInfo node, long loop) {
         super(type);
 
+        this.loop = loop;
         this.node = node;
         toAdd = new LinkedList<>();
         toRemove = new LinkedList<>();
@@ -75,6 +77,8 @@ public class Token extends NetworkMessage {
                 .setPort(node.getPort())
                 .build());
 
+        protoToken.setLoop(token.loop);
+
         //TODO build token sensor data field
         return protoToken.build();
     }
@@ -91,5 +95,9 @@ public class Token extends NetworkMessage {
         });
 
         return nodeList;
+    }
+
+    public long getLoop () {
+        return loop;
     }
 }

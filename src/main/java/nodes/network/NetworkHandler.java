@@ -44,6 +44,7 @@ public class NetworkHandler implements Runnable{
 
         if (nodes.size() > 1) {
             next = getNextNodeInNetwork();
+            receiver.setTokenLoop(true);
             transmitter.greeting();
         } else {
             next = null;
@@ -51,7 +52,8 @@ public class NetworkHandler implements Runnable{
                 MessageType.TOKEN ,
                 new LinkedList<>(),
                 new LinkedList<>(),
-                node);
+                node,
+                    0);
         }
 
         transmitterThread.start();
@@ -66,6 +68,9 @@ public class NetworkHandler implements Runnable{
                 }
 
                 ArrayList<NetworkMessage> queue = receiver.getMessagesQueue();
+                if (queue.size() > 1) {
+                    System.out.println("Msg Queue: " + queue.size());
+                }
                 queue.forEach(msg -> {
                     switch (msg.getType()) {
                         case TOKEN:
@@ -85,7 +90,7 @@ public class NetworkHandler implements Runnable{
         }
     }
 
-    private synchronized void computeToken(Token receivedToken) {
+    private void computeToken(Token receivedToken) {
         //TODO handle token measurements
 
         ArrayList<NodeInfo> tokenNodesToAdd = new ArrayList<>();
@@ -110,7 +115,7 @@ public class NetworkHandler implements Runnable{
 
         greetingNodes.clear();
 
-        token = new Token(MessageType.TOKEN, tokenNodesToAdd, tokenNodesToRemove, node);
+        token = new Token(MessageType.TOKEN, tokenNodesToAdd, tokenNodesToRemove, node, receivedToken.getLoop() + 1);
 
         tokenReady();
 
@@ -130,8 +135,8 @@ public class NetworkHandler implements Runnable{
 
     // Updates the node reference inside the network. This means set the new target node that will receive the token.
     private void updateNetworkReference() {
-        NodeInfo newNext = getNextNodeInNetwork();
         synchronized (networkReferenceLock) {
+            NodeInfo newNext = getNextNodeInNetwork();
             if (next != null && newNext.getId() != next.getId()) {
                 next = newNext;
             } else if (next == null) {
@@ -144,10 +149,8 @@ public class NetworkHandler implements Runnable{
     }
 
     private NodeInfo getNextNodeInNetwork() {
-        synchronized (nodes) {
-            NodeInfo next = nodes.get((getIndex(nodes, node) + 1) % nodes.size());
-            return new NodeInfo(next.getId(),next.getIp(), next.getPort());
-        }
+        NodeInfo next = nodes.get((getIndex(nodes, node) + 1) % nodes.size());
+        return new NodeInfo(next.getId(),next.getIp(), next.getPort());
     }
 
     private static int getIndex(LinkedList<NodeInfo> nodes, NodeInfo node) {
@@ -168,7 +171,7 @@ public class NetworkHandler implements Runnable{
         list.add(index, element);
     }
 
-    public synchronized void insertGreetingNodeToNetwork(GreetingMessage message) {
+    public void insertGreetingNodeToNetwork(GreetingMessage message) {
         NodeInfo nodeInfo = message.getNodeInfo();
         sortedAdd(nodes, nodeInfo);
         greetingNodes.add(nodeInfo);
