@@ -1,4 +1,4 @@
-package nodes.network.messages;
+package nodes.network;
 
 import com.networking.node.NetworkServiceOuterClass.*;
 import jBeans.NodeInfo;
@@ -7,31 +7,17 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Token extends NetworkMessage {
-    private final NodeInfo node;
+public class Token{
+    private final NodeInfo from;
+    private final NodeInfo to;
     private final LinkedList<NodeInfo> toAdd;
     private final LinkedList<NodeInfo> toRemove;
-    private final Long loop;
 
-    public Token(MessageType type, List<NodeInfo> toAddNodeList, List<NodeInfo> toRemoveNodeList, NodeInfo node, long loop) {
-        super(type);
-
-        this.loop = loop;
-        this.node = node;
-        toAdd = new LinkedList<>();
-        toRemove = new LinkedList<>();
-
-        toAddNodeList.forEach(protoNodeInfo -> {
-            if (protoNodeInfo.getId() != node.getId()) {
-                toAdd.add(new NodeInfo(protoNodeInfo.getId(), protoNodeInfo.getIp(),protoNodeInfo.getPort()));
-            }
-        });
-
-        toRemoveNodeList.forEach(protoNodeInfo -> {
-            if (protoNodeInfo.getId() != node.getId()) {
-                toRemove.add(new NodeInfo(protoNodeInfo.getId(), protoNodeInfo.getIp(),protoNodeInfo.getPort()));
-            }
-        });
+    public Token(List<NodeInfo> toAdd, List<NodeInfo> toRemove, NodeInfo from, NodeInfo to) {
+        this.from = from;
+        this.to = to;
+        this.toAdd = new LinkedList<>(toAdd);
+        this.toRemove = new LinkedList<>(toRemove);
     }
 
     public LinkedList<NodeInfo> getToAdd() {
@@ -42,7 +28,7 @@ public class Token extends NetworkMessage {
         return toRemove;
     }
 
-    public static ProtoToken tokenBuild(Token token, NodeInfo node) {
+    public static ProtoToken tokenBuild(Token token, NodeInfo from, NodeInfo to) {
         LinkedList<NodeInfo> toAdd = token.getToAdd();
         LinkedList<NodeInfo> toRemove = token.getToRemove();
 
@@ -60,9 +46,9 @@ public class Token extends NetworkMessage {
         toRemove.forEach((nodeInfo -> {
             protoToRemove.add(ProtoNodeInfo
                     .newBuilder()
-                    .setId(node.getId())
-                    .setIp(node.getIp())
-                    .setPort(node.getPort())
+                    .setId(nodeInfo.getId())
+                    .setIp(nodeInfo.getIp())
+                    .setPort(nodeInfo.getPort())
                     .build());
         }));
 
@@ -72,20 +58,27 @@ public class Token extends NetworkMessage {
 
         protoToken.setFrom(ProtoNodeInfo
                 .newBuilder()
-                .setId(node.getId())
-                .setIp(node.getIp())
-                .setPort(node.getPort())
+                .setId(from.getId())
+                .setIp(from.getIp())
+                .setPort(from.getPort())
                 .build());
 
-        protoToken.setLoop(token.loop);
+        protoToken.setTo(ProtoNodeInfo
+                .newBuilder()
+                .setId(to.getId())
+                .setIp(to.getIp())
+                .setPort(to.getPort())
+                .build());
 
         //TODO build token sensor data field
         return protoToken.build();
     }
 
-    public NodeInfo getNode() {
-        return node;
+    public NodeInfo getFrom() {
+        return from;
     }
+
+    public NodeInfo getTo() {return to;}
 
     public static LinkedList<NodeInfo> fromProtoToNode (List<ProtoNodeInfo> protoNodeInfo) {
         LinkedList<NodeInfo> nodeList = new LinkedList<>();
@@ -95,9 +88,5 @@ public class Token extends NetworkMessage {
         });
 
         return nodeList;
-    }
-
-    public long getLoop () {
-        return loop;
     }
 }

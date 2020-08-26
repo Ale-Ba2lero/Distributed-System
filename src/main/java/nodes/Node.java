@@ -8,6 +8,10 @@ import nodes.network.NetworkHandler;
 import nodes.network.Receiver;
 import nodes.network.Transmitter;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -69,7 +73,15 @@ public final class Node {
         System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
     }
 
-    private static void serverGreeting() throws IOException {
+    private static void nodeStop() {
+        Response goodbyeResponse = ServerHandler.DELETENodeFromServer(nodeInfo.getId());
+        System.out.println("\n\nResponse status: " + goodbyeResponse.getStatus());
+        System.out.println(goodbyeResponse.readEntity(String.class));
+        // Once the node has been removed from the gateway list remove it from the network.
+        networkHandler.removeNodeFromNetwork();
+    }
+
+    private static void serverGreeting(){
         if (nodeInfo != null) {
             Response greetingResponse = ServerHandler.POSTServerGreeting(nodeInfo);
             if (greetingResponse.getStatus() == 200) {

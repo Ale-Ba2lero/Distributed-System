@@ -25,4 +25,10 @@ public class ServerHandler {
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN);
         return invocationBuilder.get();
     }
+
+    public static Response DELETENodeFromServer(int nodeId) {
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(URI).path("node/" + nodeId);
+        return webTarget.request(MediaType.TEXT_PLAIN).delete();
+    }
 }

@@ -7,18 +7,15 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import jBeans.NodeInfo;
-import nodes.network.messages.Token;
 
 public class Transmitter implements Runnable {
 
     private final NetworkHandler networkHandler;
-    private final NodeInfo node;
     private NodeInfo target;
     private ManagedChannel channel;
 
     public Transmitter(NetworkHandler networkHandler, NodeInfo node) {
         this.networkHandler = networkHandler;
-        this.node = node;
     }
 
     @Override
@@ -32,7 +29,9 @@ public class Transmitter implements Runnable {
                 e.printStackTrace();
             }
 
-            NodeInfo newTarget = networkHandler.getTarget();
+            Token token = networkHandler.getToken();
+            NodeInfo newTarget = token.getTo();
+
             if (target == null || target.getId() != newTarget.getId()) {
                 target = newTarget;
 
@@ -47,7 +46,7 @@ public class Transmitter implements Runnable {
 
             //plaintext channel on the address (ip/port) which offers the GreetingService service
             NetworkServiceStub stub = NetworkServiceGrpc.newStub(channel);
-            stub.sendTheToken(Token.tokenBuild(networkHandler.getToken(), node), new StreamObserver<Message>() {
+            stub.sendTheToken(Token.tokenBuild(token, token.getFrom(), token.getTo()), new StreamObserver<Message>() {
                 @Override
                 public void onNext(Message message) {
 
@@ -69,7 +68,7 @@ public class Transmitter implements Runnable {
     }
 
     //contact a node on the list and inform it about the new node
-    public void greeting() {
+    public void greeting(NodeInfo node) {
         //System.out.println("Greeting to " + networkHandler.getTarget().getId());
         if (channel != null) {
             channel.shutdownNow();

@@ -13,7 +13,7 @@ message ProtoToken {
   repeated ProtoNodeInfo toAdd = 1;
   repeated ProtoNodeInfo toRemove = 2;
   ProtoNodeInfo from = 3;
-  int64 loop = 4;
+  ProtoNodeInfo to = 4;
 
   message SensorData {
     int32 data = 1;
