@@ -21,7 +21,7 @@ public class NetworkServiceImpl extends NetworkServiceImplBase {
     @Override
     public void greeting(ProtoNodeInfo node, StreamObserver<Message> responseObserver) {
         receiver.greeting(node);
-        responseObserver.onNext(Message.newBuilder().setMessage("Welcome!").build());
+        responseObserver.onNext(Message.newBuilder().setMessage("Added to network").build());
         responseObserver.onCompleted();
     }
 }

@@ -5,8 +5,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
 import nodes.network.NetworkHandler;
+import nodes.network.Receiver;
+import nodes.network.Transmitter;
+
 import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -20,7 +25,8 @@ public final class Node {
 
         nodeInit();
         serverGreeting();
-        /*InputStreamReader streamReader = new InputStreamReader(System.in);
+        /*
+        InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
         while (true) {
@@ -89,9 +95,16 @@ public final class Node {
         }
     }
 
-    private static void nodeStart(LinkedList<NodeInfo> nodes) throws IOException {
+    private static void nodeStart(LinkedList<NodeInfo> nodes) {
         networkHandler = new NetworkHandler(nodeInfo);
-        networkHandler.init(nodes);
+
+        Transmitter transmitter = new Transmitter(networkHandler, nodeInfo);
+        Receiver receiver = new Receiver(networkHandler, nodeInfo);
+
+        networkHandler.init(nodes, transmitter, receiver);
+
+        Thread transmitterThread = new Thread(transmitter);
+        transmitterThread.start();
         Thread networkHandlerThread = new Thread(networkHandler);
         networkHandlerThread.start();
     }

@@ -6,15 +6,15 @@ import nodes.network.messages.MessageType;
 import nodes.network.messages.NetworkMessage;
 import nodes.network.messages.Token;
 
-import java.io.IOException;
 import java.util.*;
 
 public class NetworkHandler implements Runnable{
     private final NodeInfo node;
+    private volatile NodeState nodeState;
 
     private final LinkedList<NodeInfo> nodes;
-    private final Transmitter transmitter;
-    private final Receiver receiver;
+    private Transmitter transmitter;
+    private Receiver receiver;
 
     private final Object networkReferenceLock;
     private NodeInfo next;
@@ -24,39 +24,35 @@ public class NetworkHandler implements Runnable{
 
     private final ArrayList<NodeInfo> greetingNodes;
 
-    public NetworkHandler(NodeInfo nodeInfo) throws IOException {
+    public NetworkHandler(NodeInfo nodeInfo) {
+        nodeState = NodeState.STARTING;
         node = nodeInfo;
         nodes = new LinkedList<>();
         greetingNodes = new ArrayList<>();
 
         networkReferenceLock = new Object();
         tokenLock = new Object();
-
-        transmitter = new Transmitter(this, node);
-        receiver = new Receiver(this, node);
     }
 
     // If this is not the only node, start a token transmitter thread (gRPC client)
-    public void init(LinkedList<NodeInfo> nodeList) {
+    public void init(LinkedList<NodeInfo> nodeList, Transmitter transmitter, Receiver receiver) {
         this.nodes.addAll(nodeList);
 
-        Thread transmitterThread = new Thread(transmitter);
+        this.receiver = receiver;
+        this.transmitter = transmitter;
 
         if (nodes.size() > 1) {
             next = getNextNodeInNetwork();
-            receiver.setTokenLoop(true);
             transmitter.greeting();
+            nodeState = NodeState.RUNNING;
         } else {
             next = null;
             token = new Token(
                 MessageType.TOKEN ,
                 new LinkedList<>(),
                 new LinkedList<>(),
-                node,
-                    0);
+                node,0);
         }
-
-        transmitterThread.start();
     }
 
     @Override
@@ -67,15 +63,9 @@ public class NetworkHandler implements Runnable{
                     this.wait();
                 }
 
-                ArrayList<NetworkMessage> queue = receiver.getMessagesQueue();
-                if (queue.size() > 1) {
-                    System.out.println("Msg Queue: " + queue.size());
-                }
-                queue.forEach(msg -> {
+                ArrayList<NetworkMessage> messageQueue = receiver.getMessagesQueue();
+                messageQueue.forEach(msg -> {
                     switch (msg.getType()) {
-                        case TOKEN:
-                            computeToken((Token) msg);
-                            break;
                         case GREETING:
                             insertGreetingNodeToNetwork((GreetingMessage) msg);
                             break;
@@ -83,6 +73,11 @@ public class NetworkHandler implements Runnable{
                             break;
                     }
                 });
+
+                ArrayList<NetworkMessage> tokenQueue = receiver.getTokenQueue();
+                if (tokenQueue.size() > 0) {
+                    computeToken((Token) tokenQueue.get(tokenQueue.size() - 1));
+                }
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -102,8 +97,8 @@ public class NetworkHandler implements Runnable{
                 // If the node to add its the same that is updating its list that means that the token made
                 // a full loop. The node addition is complete.
                 if (nodeInfo.getId() != node.getId()) {
-                    System.out.println("Adding " + nodeInfo.getId());
                     sortedAdd(nodes, nodeInfo);
+                    System.out.println(nodes);
                     tokenNodesToAdd.add(nodeInfo);
                 }
             });
@@ -118,12 +113,6 @@ public class NetworkHandler implements Runnable{
         token = new Token(MessageType.TOKEN, tokenNodesToAdd, tokenNodesToRemove, node, receivedToken.getLoop() + 1);
 
         tokenReady();
-
-        //If there are nodes to remove, make a call to the network handler to remove the new nodes
-        /*
-        if (toRemove.size() > 0) {
-            removeNodesFromList(toRemove);
-        }*/
     }
 
     // The entry token has been handled and is ready to be sent to the next node
@@ -143,6 +132,7 @@ public class NetworkHandler implements Runnable{
                 // If next is null this means this was the first node entering the network and now is updating its references
                 // due to an other node greeting to it. Now the network contains two nodes and the token loop can start.
                 next = newNext;
+                nodeState = NodeState.RUNNING;
                 tokenReady();
             }
         }
@@ -171,9 +161,10 @@ public class NetworkHandler implements Runnable{
         list.add(index, element);
     }
 
-    public void insertGreetingNodeToNetwork(GreetingMessage message) {
+    private void insertGreetingNodeToNetwork(GreetingMessage message) {
         NodeInfo nodeInfo = message.getNodeInfo();
         sortedAdd(nodes, nodeInfo);
+        System.out.println(nodes);
         greetingNodes.add(nodeInfo);
         updateNetworkReference();
     }
@@ -193,4 +184,18 @@ public class NetworkHandler implements Runnable{
     public NodeInfo getNode() {
         return node;
     }
+
+    public NodeState getNodeState() {
+        synchronized (nodeState) {
+            return nodeState;
+        }
+    }
+
+    public enum NodeState {
+        STARTING,
+        RUNNING,
+        QUITTING
+    }
  }
+
+
