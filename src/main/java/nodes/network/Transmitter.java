@@ -76,9 +76,23 @@ public class Transmitter implements Runnable {
 
         //plaintext channel on the address (ip/port) which offers the GreetingService service
         channel = ManagedChannelBuilder.forTarget(networkHandler.getTarget().getIp() + ":" + networkHandler.getTarget().getPort()).usePlaintext(true).build();
-        NetworkServiceBlockingStub stub = NetworkServiceGrpc.newBlockingStub(channel);
+        NetworkServiceStub stub = NetworkServiceGrpc.newStub(channel);
         ProtoNodeInfo info = ProtoNodeInfo.newBuilder().setIp(node.getIp()).setId(node.getId()).setPort(node.getPort()).build();
-        Message message = stub.greeting(info);
-        System.out.println(message.getMessage());
+        stub.greeting(info, new StreamObserver<Message>() {
+            @Override
+            public void onNext(Message message) {
+                System.out.println(message.getMessage());
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                System.out.println(throwable.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
     }
 }

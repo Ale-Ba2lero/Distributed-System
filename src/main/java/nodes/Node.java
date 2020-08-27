@@ -29,13 +29,13 @@ public final class Node {
 
         nodeInit();
         serverGreeting();
-        /*
+
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
         while (true) {
             System.out.println("----------------------------------------\n" +
-                "1 : start node\n" +
+                "1 : node info\n" +
                 "2 : stop node\n"
             );
 
@@ -46,11 +46,10 @@ public final class Node {
                     int userInput = Integer.parseInt(line);
                     switch (userInput) {
                         case 1:
-                            nodeInit();
-                            serverGreeting();
+                            System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
                             break;
                         case 2:
-                            stopNode();
+                            nodeStop();
                             break;
                         default:
                             System.out.println("Wrong input.\n");
@@ -61,7 +60,7 @@ public final class Node {
             } catch (IOException  e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 
     private static void nodeInit() {
@@ -78,7 +77,9 @@ public final class Node {
         System.out.println("\n\nResponse status: " + goodbyeResponse.getStatus());
         System.out.println(goodbyeResponse.readEntity(String.class));
         // Once the node has been removed from the gateway list remove it from the network.
-        networkHandler.removeNodeFromNetwork();
+        if ( goodbyeResponse.getStatus() == 200) {
+            networkHandler.removeNodeFromNetwork();
+        }
     }
 
     private static void serverGreeting(){
@@ -97,7 +98,6 @@ public final class Node {
                 }
 
                 nodeStart(nodes);
-
             } else {
                 System.out.println("\nResponse status: " + greetingResponse.getStatus());
                 System.out.println(greetingResponse.readEntity(String.class) + "\n");

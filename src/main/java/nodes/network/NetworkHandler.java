@@ -19,6 +19,7 @@ public class NetworkHandler implements Runnable{
     private Token token;
 
     private final ArrayList<NodeInfo> greetingNodes;
+    private long i = 0;
 
     public NetworkHandler(NodeInfo nodeInfo) {
         nodeState = NodeState.STARTING;
@@ -48,19 +49,24 @@ public class NetworkHandler implements Runnable{
 
     @Override
     public void run() {
-        while (true) {
+        while (nodeState != NodeState.DONE) {
             try {
                 synchronized (this) {
                     this.wait();
                 }
 
                 ArrayList<NodeInfo> greetingsQueue = receiver.getGreetingsQueue();
-                greetingsQueue.forEach(this::insertNodeToNetwork);
+                greetingsQueue.forEach(nodeInfo -> {
+                    sortedAdd(nodes, nodeInfo);
+                    greetingNodes.add(nodeInfo);
+                    updateNetworkTarget();
+                });
 
                 Token receivedToken = receiver.getToken();
                 if (receivedToken != null) {
                     computeToken(receivedToken);
                 }
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -68,6 +74,11 @@ public class NetworkHandler implements Runnable{
     }
 
     private void computeToken(Token receivedToken) {
+        i++;
+        if (i % 1000 == 0) {
+            System.out.println("Token received: " + i);
+        }
+
         //TODO handle token measurements
         ArrayList<NodeInfo> tokenNodesToAdd = new ArrayList<>();
         ArrayList<NodeInfo> tokenNodesToRemove = new ArrayList<>();
@@ -84,6 +95,7 @@ public class NetworkHandler implements Runnable{
                 }
             });
             //update gRPC references
+            System.out.println("Add");
             updateNetworkTarget();
         }
 
@@ -94,11 +106,12 @@ public class NetworkHandler implements Runnable{
         if (receivedToken.getToRemove().size() > 0) {
             receivedToken.getToRemove().forEach(nodeInfo -> {
                 if (nodeInfo.getId() != node.getId()) {
-                    nodes.forEach(n -> {
-                        if (n.getId() == nodeInfo.getId()) {
-                            nodes.remove(n);
+                    for (int i = 0; i < nodes.size(); i++) {
+                        if (nodes.get(i).getId() == nodeInfo.getId()) {
+                            nodes.remove(nodes.get(i));
+                            i = nodes.size();
                         }
-                    });
+                    }
                     tokenNodesToRemove.add(nodeInfo);
                 } else {
                     // If the node to remove is the current one that means that the token made
@@ -107,7 +120,7 @@ public class NetworkHandler implements Runnable{
                     quit();
                 }
             });
-
+            System.out.println("Remove");
             updateNetworkTarget();
         }
 
@@ -115,8 +128,15 @@ public class NetworkHandler implements Runnable{
         greetingNodes.clear();
         if (nodeState == NodeState.QUITTING) tokenNodesToRemove.add(node);
 
-        token = new Token(tokenNodesToAdd, tokenNodesToRemove, node, targetNode);
-        tokenReady();
+        if (targetNode.getId() == node.getId()) {
+            System.out.println("Last node");
+            target = null;
+            token = null;
+            nodeState = NodeState.STARTING;
+        } else {
+            token = new Token(tokenNodesToAdd, tokenNodesToRemove, node, targetNode);
+            tokenReady();
+        }
     }
 
     // The entry token has been handled and is ready to be sent to the next node
@@ -143,6 +163,8 @@ public class NetworkHandler implements Runnable{
                 tokenReady();
             }
         }
+
+        System.out.println(nodes);
     }
 
     private NodeInfo getNextNodeInNetwork() {
@@ -166,17 +188,10 @@ public class NetworkHandler implements Runnable{
             index = -index - 1;
         }
         list.add(index, element);
-        System.out.println(nodes);
-    }
-
-    private void insertNodeToNetwork(NodeInfo nodeInfo) {
-        sortedAdd(nodes, nodeInfo);
-        System.out.println(nodes);
-        greetingNodes.add(nodeInfo);
-        updateNetworkTarget();
     }
 
     private void quit() {
+        nodeState = NodeState.DONE;
         System.out.println("Node successfully removed");
     }
 
@@ -209,7 +224,8 @@ public class NetworkHandler implements Runnable{
     public enum NodeState {
         STARTING,
         RUNNING,
-        QUITTING
+        QUITTING,
+        DONE
     }
  }
 
