@@ -8,10 +8,6 @@ import nodes.network.NetworkHandler;
 import nodes.network.Receiver;
 import nodes.network.Transmitter;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +21,7 @@ public final class Node {
     private static NetworkHandler networkHandler;
     private Node(){}
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         nodeInit();
         serverGreeting();

@@ -14,16 +14,20 @@ message ProtoToken {
   repeated ProtoNodeInfo toRemove = 2;
   ProtoNodeInfo from = 3;
   ProtoNodeInfo to = 4;
-
-  message SensorData {
-    int32 data = 1;
-  }
+  repeated Measurement measurement = 5;
 }
 
 message ProtoNodeInfo {
   int32 id = 1;
   string ip = 2;
   int32 port = 3;
+}
+
+message Measurement {
+  string id = 1;
+  string type = 2;
+  double value = 3;
+  int64 timestamp = 4;
 }
 
 message Message {

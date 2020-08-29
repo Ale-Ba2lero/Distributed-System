@@ -32,7 +32,7 @@ public class Receiver {
     public void receiveToken(ProtoToken protoToken) {
         //System.out.println("[" + networkHandler.getNode().getId() + "] Token received from " + protoToken.getFrom().getId());
         synchronized (tokenLock) {
-            this.token = new Token(
+            token = new Token(
                     Token.fromProtoToNode(protoToken.getToAddList()),
                     Token.fromProtoToNode(protoToken.getToRemoveList()),
                     new NodeInfo(protoToken.getFrom().getId(), protoToken.getFrom().getIp(), protoToken.getFrom().getPort()),
