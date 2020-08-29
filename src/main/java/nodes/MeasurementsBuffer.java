@@ -4,23 +4,46 @@ import nodes.sensor.Buffer;
 import nodes.sensor.Measurement;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 public class MeasurementsBuffer implements Buffer {
 
-    private ArrayList<Measurement> buffer;
+    private final int RAW_BUFFER_SIZE = 12;
+
+    private final LinkedList<Measurement> buffer;
+    private ArrayList<Measurement> rawBuffer;
 
     public MeasurementsBuffer() {
-        this.buffer = new ArrayList<>();
+        this.rawBuffer = new ArrayList<>();
+        this.buffer = new LinkedList<>();
     }
 
     @Override
-    public void addMeasurement(Measurement m) {
+    public synchronized void addMeasurement(Measurement m) {
 
-        buffer.add(m);
+        rawBuffer.add(m);
 
-        if (buffer.size() == 12) {
-            System.out.println(buffer);
-            buffer = new ArrayList<> (buffer.subList(6, 11));
+        if (rawBuffer.size() == RAW_BUFFER_SIZE) {
+            buffer.add(computeAverage(rawBuffer));
+            System.out.println(buffer.pop());
+            rawBuffer = new ArrayList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE - 1));
+        }
+    }
+
+    private Measurement computeAverage(ArrayList<Measurement> buffer) {
+        return new Measurement(
+            buffer.get(buffer.size() - 1).getId(),
+            buffer.get(buffer.size() - 1).getType(),
+            buffer.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
+            buffer.get(buffer.size() - 1).getTimestamp());
+    }
+
+    public synchronized Measurement pop() {
+        try {
+            return buffer.pop();
+        } catch (NoSuchElementException e) {
+            return null;
         }
     }
 }
