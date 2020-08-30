@@ -46,7 +46,7 @@ public class Transmitter implements Runnable {
 
             //plaintext channel on the address (ip/port) which offers the GreetingService service
             NetworkServiceStub stub = NetworkServiceGrpc.newStub(channel);
-            stub.sendTheToken(Token.tokenBuild(token, token.getFrom(), token.getTo()), new StreamObserver<Message>() {
+            stub.sendTheToken(token.tokenBuild(), new StreamObserver<Message>() {
                 @Override
                 public void onNext(Message message) {
 

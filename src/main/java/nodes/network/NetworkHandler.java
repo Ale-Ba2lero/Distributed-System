@@ -1,9 +1,11 @@
 package nodes.network;
 
 import jBeans.NodeInfo;
+import nodes.MeasurementsBuffer;
+import nodes.ServerHandler;
+import nodes.sensor.Measurement;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class NetworkHandler implements Runnable{
     private final NodeInfo node;
@@ -12,6 +14,7 @@ public class NetworkHandler implements Runnable{
     private final LinkedList<NodeInfo> nodes;
     private Transmitter transmitter;
     private Receiver receiver;
+    private MeasurementsBuffer buffer;
 
     private final Object networkTargetLock;
     private NodeInfo target;
@@ -32,11 +35,13 @@ public class NetworkHandler implements Runnable{
     }
 
     // If this is not the only node, start a token transmitter thread (gRPC client)
-    public void init(LinkedList<NodeInfo> nodeList, Transmitter transmitter, Receiver receiver) {
+    public void init(LinkedList<NodeInfo> nodeList, Transmitter transmitter, Receiver receiver, MeasurementsBuffer buffer) {
         this.nodes.addAll(nodeList);
 
         this.receiver = receiver;
         this.transmitter = transmitter;
+
+        this.buffer = buffer;
 
         if (nodes.size() > 1) {
             target = getNextNodeInNetwork();
@@ -80,7 +85,40 @@ public class NetworkHandler implements Runnable{
             System.out.println("Token received: " + i);
         }
 
-        //TODO handle token measurements
+        ArrayList<Measurement> measurements = receivedToken.getMeasurements();
+
+        // Check whether the measurement of this node is already present in the token...
+        boolean isPresent =
+                measurements
+                        .stream()
+                        .map(Measurement::getId)
+                        .anyMatch(v -> Integer.parseInt(v) == node.getId());
+
+        // ... if there are no measurements associated with the node id,
+        // and if a new measurement is ready, add the measurement to the token.
+        if (!isPresent) {
+            Measurement m = buffer.pop();
+            if (m != null) {
+                measurements.add(m);
+            }
+        }
+
+        // If all nodes inserted the measurement into tho token,
+        // calculate the average and send the value to the gateway
+        if (measurements.size() == nodes.size()) {
+
+            Measurement m = new Measurement(
+                node.getId() + "",
+                measurements.get(nodes.getLast().getId()).getType(),
+                measurements.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
+                measurements.get(nodes.getLast().getId()).getTimestamp());
+
+            ServerHandler.POSTMeasurement(m);
+            System.out.println(m);
+
+            measurements = new ArrayList<>();
+        }
+
         ArrayList<NodeInfo> tokenNodesToAdd = new ArrayList<>();
         ArrayList<NodeInfo> tokenNodesToRemove = new ArrayList<>();
 
@@ -95,8 +133,8 @@ public class NetworkHandler implements Runnable{
                     tokenNodesToAdd.add(nodeInfo);
                 }
             });
+
             //update gRPC references
-            System.out.println("Add");
             updateNetworkTarget();
         }
 
@@ -121,7 +159,8 @@ public class NetworkHandler implements Runnable{
                     quit();
                 }
             });
-            System.out.println("Remove");
+
+            //update gRPC references
             updateNetworkTarget();
         }
 
@@ -135,7 +174,12 @@ public class NetworkHandler implements Runnable{
             token = null;
             nodeState = NodeState.STARTING;
         } else {
-            token = new Token(tokenNodesToAdd, tokenNodesToRemove, node, targetNode);
+            token = new Token(
+                    tokenNodesToAdd,
+                    tokenNodesToRemove,
+                    node,
+                    targetNode,
+                    measurements);
             tokenReady();
         }
     }
@@ -160,7 +204,9 @@ public class NetworkHandler implements Runnable{
                 nodeState = NodeState.RUNNING;
                 token = new Token(new ArrayList<>(),
                         new ArrayList<>(),
-                        node, target);
+                        node,
+                        target,
+                        new ArrayList<>());
                 tokenReady();
             }
         }
@@ -213,9 +259,7 @@ public class NetworkHandler implements Runnable{
     }
 
     public NodeState getNodeState() {
-        synchronized (nodeState) {
-            return nodeState;
-        }
+        return nodeState;
     }
 
     public void removeNodeFromNetwork() {

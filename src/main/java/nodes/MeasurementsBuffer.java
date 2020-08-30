@@ -21,22 +21,17 @@ public class MeasurementsBuffer implements Buffer {
 
     @Override
     public synchronized void addMeasurement(Measurement m) {
-
         rawBuffer.add(m);
 
         if (rawBuffer.size() == RAW_BUFFER_SIZE) {
-            buffer.add(computeAverage(rawBuffer));
+            buffer.add(new Measurement(
+                    rawBuffer.get(rawBuffer.size() - 1).getId(),
+                    rawBuffer.get(rawBuffer.size() - 1).getType(),
+                    rawBuffer.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
+                    rawBuffer.get(rawBuffer.size() - 1).getTimestamp()));
             System.out.println(buffer.pop());
             rawBuffer = new ArrayList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE - 1));
         }
-    }
-
-    private Measurement computeAverage(ArrayList<Measurement> buffer) {
-        return new Measurement(
-            buffer.get(buffer.size() - 1).getId(),
-            buffer.get(buffer.size() - 1).getType(),
-            buffer.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
-            buffer.get(buffer.size() - 1).getTimestamp());
     }
 
     public synchronized Measurement pop() {

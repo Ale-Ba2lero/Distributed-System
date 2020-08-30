@@ -7,6 +7,7 @@ import jBeans.NodeInfo;
 import nodes.network.NetworkHandler;
 import nodes.network.Receiver;
 import nodes.network.Transmitter;
+import nodes.sensor.PM10Simulator;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -21,18 +22,19 @@ public final class Node {
     private static NetworkHandler networkHandler;
     private Node(){}
 
+    private static boolean terminate = false;
+
     public static void main(String[] args) {
 
-        nodeInit();
+        initNode();
         serverGreeting();
 
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
-        while (true) {
+        while (!terminate) {
             System.out.println("----------------------------------------\n" +
-                "1 : node info\n" +
-                "2 : stop node\n"
+                "1 : stop node\n"
             );
 
             try {
@@ -40,15 +42,10 @@ public final class Node {
                 // Handle empty or space input
                 if (!line.isEmpty() && !line.equals(" ")) {
                     int userInput = Integer.parseInt(line);
-                    switch (userInput) {
-                        case 1:
-                            System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
-                            break;
-                        case 2:
-                            nodeStop();
-                            break;
-                        default:
-                            System.out.println("Wrong input.\n");
+                    if (userInput == 1) {
+                        stopNode();
+                    } else {
+                        System.out.println("Wrong input.\n");
                     }
                 } else {
                     System.out.println("Wrong input.\n");
@@ -59,7 +56,7 @@ public final class Node {
         }
     }
 
-    private static void nodeInit() {
+    private static void initNode() {
         Random random = new Random();
         int id = random.nextInt(1000);
         String ip = "localhost";
@@ -68,7 +65,7 @@ public final class Node {
         System.out.print("Init: Id= " + nodeInfo.getId() + " Ip= " + nodeInfo.getIp() + " Port= " + nodeInfo.getPort() + "\n");
     }
 
-    private static void nodeStop() {
+    private static void stopNode() {
         Response goodbyeResponse = ServerHandler.DELETENodeFromServer(nodeInfo.getId());
         System.out.println("\n\nResponse status: " + goodbyeResponse.getStatus());
         System.out.println(goodbyeResponse.readEntity(String.class));
@@ -76,6 +73,8 @@ public final class Node {
         if ( goodbyeResponse.getStatus() == 200) {
             networkHandler.removeNodeFromNetwork();
         }
+
+        //Node.terminate = true;
     }
 
     private static void serverGreeting(){
@@ -108,12 +107,15 @@ public final class Node {
 
         Transmitter transmitter = new Transmitter(networkHandler, nodeInfo);
         Receiver receiver = new Receiver(networkHandler, nodeInfo);
+        MeasurementsBuffer buffer = new MeasurementsBuffer();
+        Thread sensor = new PM10Simulator(nodeInfo.getId() + "", buffer);
 
-        networkHandler.init(nodes, transmitter, receiver);
+        networkHandler.init(nodes, transmitter, receiver, buffer);
 
         Thread transmitterThread = new Thread(transmitter);
         transmitterThread.start();
         Thread networkHandlerThread = new Thread(networkHandler);
         networkHandlerThread.start();
+        sensor.start();
     }
 }

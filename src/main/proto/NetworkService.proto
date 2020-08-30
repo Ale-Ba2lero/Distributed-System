@@ -14,7 +14,7 @@ message ProtoToken {
   repeated ProtoNodeInfo toRemove = 2;
   ProtoNodeInfo from = 3;
   ProtoNodeInfo to = 4;
-  repeated Measurement measurement = 5;
+  repeated ProtoMeasurement measurements = 5;
 }
 
 message ProtoNodeInfo {
@@ -23,7 +23,7 @@ message ProtoNodeInfo {
   int32 port = 3;
 }
 
-message Measurement {
+message ProtoMeasurement {
   string id = 1;
   string type = 2;
   double value = 3;

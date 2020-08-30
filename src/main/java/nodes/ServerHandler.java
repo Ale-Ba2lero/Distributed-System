@@ -1,6 +1,7 @@
 package nodes;
 
 import jBeans.NodeInfo;
+import nodes.sensor.Measurement;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
@@ -30,5 +31,9 @@ public class ServerHandler {
         Client client = ClientBuilder.newClient();
         WebTarget webTarget = client.target(URI).path("node/" + nodeId);
         return webTarget.request(MediaType.TEXT_PLAIN).delete();
+    }
+
+    public static void POSTMeasurement(Measurement m) {
+        // TODO implement
     }
 }
