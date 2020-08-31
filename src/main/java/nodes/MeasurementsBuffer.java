@@ -3,7 +3,6 @@ package nodes;
 import nodes.sensor.Buffer;
 import nodes.sensor.Measurement;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class MeasurementsBuffer implements Buffer {

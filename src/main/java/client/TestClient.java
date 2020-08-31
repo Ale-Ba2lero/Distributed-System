@@ -21,8 +21,9 @@ public class TestClient {
         while (run) {
             System.out.println(
                 "1: (POST) insert new node infos.\n" +
-                "2: (GET) obtain list of nodes from server.\n" +
-                "3: (DELETE) remove a node\n"
+                "2: (GET) get list of nodes from server.\n" +
+                "3: (DELETE) remove a node\n" +
+                "4: (GET) get last measurement"
             );
 
             try {
@@ -33,6 +34,8 @@ public class TestClient {
                     GETServerNodesInfo();
                 } else if (userInput == 3) {
                     DELETENodeInfo();
+                } else if (userInput == 4) {
+                    GETDataMeasurement();
                 }
                 else {
                     System.out.println("Wrong input.\n");
@@ -73,6 +76,16 @@ public class TestClient {
                 .request(MediaType.TEXT_PLAIN)
                 .delete();
         System.out.println("\n\nResponse status: " + response.getStatus());
+        System.out.println(response.readEntity(String.class));
+    }
+
+    private static void GETDataMeasurement() {
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(URI).path("data");
+        Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
+        Response response = invocationBuilder.get();
+
+        System.out.println(response.getStatus());
         System.out.println(response.readEntity(String.class));
     }
 

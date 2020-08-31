@@ -88,7 +88,7 @@ public final class Node {
                 ObjectMapper mapper = new ObjectMapper();
                 try {
                     nodes = mapper.readValue(jsonNodeList, new TypeReference<LinkedList<NodeInfo>>() {});
-                } catch (JsonProcessingException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
 

@@ -5,6 +5,7 @@ import nodes.MeasurementsBuffer;
 import nodes.ServerHandler;
 import nodes.sensor.Measurement;
 
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 public class NetworkHandler implements Runnable{
@@ -108,15 +109,17 @@ public class NetworkHandler implements Runnable{
         // If all nodes inserted the measurement into tho token,
         // calculate the average and send the value to the gateway
         if (measurements.size() == nodes.size()) {
-            System.out.println("Token full: " + measurements );
             Measurement m = new Measurement(
                 node.getId() + "",
                 measurements.get(measurements.size() - 1).getType(),
                 measurements.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
                 measurements.get(measurements.size() - 1).getTimestamp());
 
-            System.out.println("Send m to geateway: " + m );
-            //ServerHandler.POSTMeasurement(m);
+            System.out.println("Send to geateway: " + m );
+
+            Response response = ServerHandler.POSTMeasurement(m);
+            System.out.println(response.getStatus());
+            System.out.println(response.readEntity(String.class));
 
             measurements = new ArrayList<>();
         }

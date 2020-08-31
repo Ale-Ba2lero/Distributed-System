@@ -2,10 +2,8 @@ package gateway.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import jBeans.NodeInfo;
 import gateway.singleton.NodeHandler;
-import nodes.sensor.Measurement;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -14,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Path("/node")
-// The Java class will be hosted at the URI path "/helloworld"
 public class NodeResource {
 
     @GET
@@ -24,8 +21,7 @@ public class NodeResource {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            String json = mapper.writeValueAsString(nodeInfos);
-            return json;
+            return mapper.writeValueAsString(nodeInfos);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -37,23 +33,8 @@ public class NodeResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setNewNode(NodeInfo node) {
         NodeHandler instance = NodeHandler.getInstance();
-        //Get a shallow copy of the list to be able to freely iterate on that
         LinkedList<NodeInfo> nodeList = instance.getNodesList();
         boolean isPresent = nodeList.stream().map(NodeInfo::getId).anyMatch(n -> n == node.getId());
-
-        /*
-        for (NodeInfo n : nodeList) {
-            if (node.getId() == n.getId()) {
-                isPresent = true;
-            }
-        }
-
-        /*
-        measurements
-                .stream()
-                .map(Measurement::getId)
-                .anyMatch(v -> Integer.parseInt(v) == node.getId());
-        */
 
         //If the id is not already taken add the node to the list (sync) and return the new list (sync) to the node
         if (!isPresent) {
