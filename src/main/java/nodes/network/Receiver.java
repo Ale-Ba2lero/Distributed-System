@@ -39,7 +39,7 @@ public class Receiver {
                     Token.fromProtoToNode(protoToken.getToRemoveList()),
                     new NodeInfo(protoToken.getFrom().getId(), protoToken.getFrom().getIp(), protoToken.getFrom().getPort()),
                     new NodeInfo(protoToken.getTo().getId(), protoToken.getTo().getIp(), protoToken.getTo().getPort()),
-                    new ArrayList<>()
+                    Token.getTokenMeasurements(protoToken.getMeasurementsList())
             );
         }
 

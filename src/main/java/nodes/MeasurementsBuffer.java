@@ -5,17 +5,16 @@ import nodes.sensor.Measurement;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 
 public class MeasurementsBuffer implements Buffer {
 
     private final int RAW_BUFFER_SIZE = 12;
 
     private final LinkedList<Measurement> buffer;
-    private ArrayList<Measurement> rawBuffer;
+    private LinkedList<Measurement> rawBuffer;
 
     public MeasurementsBuffer() {
-        this.rawBuffer = new ArrayList<>();
+        this.rawBuffer = new LinkedList<>();
         this.buffer = new LinkedList<>();
     }
 
@@ -29,16 +28,17 @@ public class MeasurementsBuffer implements Buffer {
                     rawBuffer.get(rawBuffer.size() - 1).getType(),
                     rawBuffer.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
                     rawBuffer.get(rawBuffer.size() - 1).getTimestamp()));
-            System.out.println(buffer.pop());
-            rawBuffer = new ArrayList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE - 1));
+            rawBuffer = new LinkedList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE - 1));
         }
     }
 
     public synchronized Measurement pop() {
-        try {
-            return buffer.pop();
-        } catch (NoSuchElementException e) {
-            return null;
+        if (buffer.size() > 0) {
+            Measurement pop = buffer.get(0);
+            buffer.remove(0);
+            return pop;
         }
+
+        return null;
     }
 }

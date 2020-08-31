@@ -33,7 +33,12 @@ public class ServerHandler {
         return webTarget.request(MediaType.TEXT_PLAIN).delete();
     }
 
-    public static void POSTMeasurement(Measurement m) {
+    public static Response POSTMeasurement(Measurement m) {
         // TODO implement
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(URI).path("measurement");
+        return webTarget
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(m, MediaType.APPLICATION_JSON));
     }
 }

@@ -44,30 +44,32 @@ public class Token{
         ProtoToken.Builder protoToken = ProtoToken.newBuilder();
 
         ArrayList<ProtoNodeInfo> protoToAdd = new ArrayList<>();
-        toAdd.forEach((nodeInfo -> protoToAdd.add(ProtoNodeInfo
+        toAdd.forEach(nodeInfo -> protoToAdd.add(ProtoNodeInfo
                 .newBuilder()
                 .setId(nodeInfo.getId())
                 .setIp(nodeInfo.getIp())
                 .setPort(nodeInfo.getPort())
-                .build())));
+                .build()));
         protoToken.addAllToAdd(protoToAdd);
 
         ArrayList<ProtoNodeInfo> protoToRemove = new ArrayList<>();
-        toRemove.forEach((nodeInfo -> protoToRemove.add(ProtoNodeInfo
+        toRemove.forEach(nodeInfo -> protoToRemove.add(ProtoNodeInfo
             .newBuilder()
             .setId(nodeInfo.getId())
             .setIp(nodeInfo.getIp())
             .setPort(nodeInfo.getPort())
-            .build())));
+            .build()));
         protoToken.addAllToRemove(protoToRemove);
 
         ArrayList<ProtoMeasurement> protoMeasurements = new ArrayList<>();
+
         measurements.forEach(m -> protoMeasurements.add(ProtoMeasurement
             .newBuilder()
             .setId(m.getId())
             .setType(m.getType())
             .setValue(m.getValue())
-            .setTimestamp(m.getTimestamp()).build()));
+            .setTimestamp(m.getTimestamp())
+            .build()));
         protoToken.addAllMeasurements(protoMeasurements);
 
         protoToken.setFrom(ProtoNodeInfo
@@ -92,6 +94,15 @@ public class Token{
     }
 
     public NodeInfo getTo() {return to;}
+
+    public static ArrayList<Measurement> getTokenMeasurements (List<ProtoMeasurement> protoMeasurements) {
+        ArrayList<Measurement> measurements = new ArrayList<>();
+
+        protoMeasurements.forEach(pm ->
+                measurements.add(new Measurement(pm.getId(), pm.getType(), pm.getValue(), pm.getTimestamp())));
+
+        return  measurements;
+    }
 
     public static LinkedList<NodeInfo> fromProtoToNode (List<ProtoNodeInfo> protoNodeInfo) {
         LinkedList<NodeInfo> nodeList = new LinkedList<>();

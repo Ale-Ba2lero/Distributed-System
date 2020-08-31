@@ -80,10 +80,12 @@ public class NetworkHandler implements Runnable{
     }
 
     private void computeToken(Token receivedToken) {
+
+        /*
         i++;
         if (i % 1000 == 0) {
-            System.out.println("Token received: " + i);
-        }
+            System.out.println("Token: " + i);
+        }*/
 
         ArrayList<Measurement> measurements = receivedToken.getMeasurements();
 
@@ -106,15 +108,15 @@ public class NetworkHandler implements Runnable{
         // If all nodes inserted the measurement into tho token,
         // calculate the average and send the value to the gateway
         if (measurements.size() == nodes.size()) {
-
+            System.out.println("Token full: " + measurements );
             Measurement m = new Measurement(
                 node.getId() + "",
-                measurements.get(nodes.getLast().getId()).getType(),
+                measurements.get(measurements.size() - 1).getType(),
                 measurements.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
-                measurements.get(nodes.getLast().getId()).getTimestamp());
+                measurements.get(measurements.size() - 1).getTimestamp());
 
-            ServerHandler.POSTMeasurement(m);
-            System.out.println(m);
+            System.out.println("Send m to geateway: " + m );
+            //ServerHandler.POSTMeasurement(m);
 
             measurements = new ArrayList<>();
         }
