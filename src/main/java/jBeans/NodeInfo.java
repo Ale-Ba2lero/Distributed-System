@@ -1,17 +1,20 @@
 package jBeans;
 
-public class NodeInfo  implements Comparable< NodeInfo > {
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
+public class NodeInfo  implements Comparable< NodeInfo > , java.io.Serializable {
     private int id;
     private String ip;
     private int port;
+
+    public NodeInfo(){}
 
     public NodeInfo(int id, String ip, int port) {
         this.id = id;
         this.ip = ip;
         this.port = port;
     }
-
-    public NodeInfo(){}
 
     public int getId() {
         return id;

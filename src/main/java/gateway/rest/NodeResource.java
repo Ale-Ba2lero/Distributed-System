@@ -16,7 +16,7 @@ public class NodeResource {
 
     @GET
     @Produces("text/plain")
-    public String printNodes() {
+    public String getNodesList() {
         List<NodeInfo> nodeInfos = NodeHandler.getInstance().getNodesList();
         ObjectMapper mapper = new ObjectMapper();
 
@@ -24,9 +24,15 @@ public class NodeResource {
             return mapper.writeValueAsString(nodeInfos);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            return "Error";
         }
+    }
 
-        return "Error";
+    @GET
+    @Produces("text/plain")
+    @Path("howmany")
+    public String getNetworkSize() {
+        return NodeHandler.getInstance().getNodesSize() + "";
     }
 
     @POST
@@ -36,7 +42,6 @@ public class NodeResource {
         LinkedList<NodeInfo> nodeList = instance.getNodesList();
         boolean isPresent = nodeList.stream().map(NodeInfo::getId).anyMatch(n -> n == node.getId());
 
-        //If the id is not already taken add the node to the list (sync) and return the new list (sync) to the node
         if (!isPresent) {
             instance.addNode(node);
             return Response.ok(instance.getNodesList()).build();
@@ -63,5 +68,4 @@ public class NodeResource {
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Node id not present").build();
     }
-
 }

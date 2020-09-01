@@ -11,19 +11,17 @@ import java.io.InputStreamReader;
 
 public class TestClient {
 
-    private static String URI = "http://localhost:8080/sdp_project_red_war_exploded/";
+    private static final String URI = "http://localhost:8080/sdp_project_red_war_exploded/";
 
-    public static void main(String args[]) throws IOException {
-        boolean run = true;
+    public static void main(String[] args) {
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
-        while (run) {
+        while (true) {
             System.out.println(
                 "1: (POST) insert new node infos.\n" +
                 "2: (GET) get list of nodes from server.\n" +
-                "3: (DELETE) remove a node\n" +
-                "4: (GET) get last measurement"
+                "3: (DELETE) remove a node\n"
             );
 
             try {
@@ -34,10 +32,7 @@ public class TestClient {
                     GETServerNodesInfo();
                 } else if (userInput == 3) {
                     DELETENodeInfo();
-                } else if (userInput == 4) {
-                    GETDataMeasurement();
-                }
-                else {
+                } else {
                     System.out.println("Wrong input.\n");
                 }
             } catch (IOException e) {
@@ -70,7 +65,7 @@ public class TestClient {
 
     private static void DELETENodeInfo() {
         Client client = ClientBuilder.newClient();
-        int nodeId = consoleRequestNodeId();
+        int nodeId = consoleValueRequest("Enter node ID: ");
         WebTarget webTarget = client.target(URI).path("node/" + nodeId);
         Response response = webTarget
                 .request(MediaType.TEXT_PLAIN)
@@ -79,22 +74,12 @@ public class TestClient {
         System.out.println(response.readEntity(String.class));
     }
 
-    private static void GETDataMeasurement() {
-        Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target(URI).path("data");
-        Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
-        Response response = invocationBuilder.get();
-
-        System.out.println(response.getStatus());
-        System.out.println(response.readEntity(String.class));
-    }
-
-    private static int consoleRequestNodeId() {
+    private static int consoleValueRequest(String textRequest) {
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
         int id = 0;
         try {
-            System.out.print("Enter node ID: ");
+            System.out.print(textRequest);
             id = Integer.parseInt(bufferedReader.readLine());
         } catch (IOException e) {
             e.printStackTrace();

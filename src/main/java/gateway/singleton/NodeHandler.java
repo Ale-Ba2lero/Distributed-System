@@ -36,4 +36,8 @@ public class NodeHandler {
     public synchronized boolean deleteNode (NodeInfo node) {
         return nodes.remove(node);
     }
+
+    public synchronized int getNodesSize() {
+        return nodes.size();
+    }
 }
