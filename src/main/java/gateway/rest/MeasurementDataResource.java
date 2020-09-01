@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gateway.singleton.DataHandler;
 import nodes.sensor.Measurement;
+import nodes.sensor.MixInMeasurement;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Path("/data")
 public class MeasurementDataResource {
@@ -17,6 +19,7 @@ public class MeasurementDataResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addMeasurement(String jsonMeasurementString) {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(Measurement.class, MixInMeasurement.class);
 
         try {
             Measurement m = mapper.readValue(jsonMeasurementString, Measurement.class);
@@ -32,15 +35,17 @@ public class MeasurementDataResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String getLastMeasurement() {
-        ObjectMapper mapper = new ObjectMapper();
 
-        Measurement lastMeasurement = DataHandler.getInstance().getMeasurements().get(0);
+        ArrayList<Measurement> m = DataHandler.getInstance().getMeasurements();
+        ObjectMapper mapper = new ObjectMapper();
         String measurementJsonString;
         try {
-            return mapper.writeValueAsString(lastMeasurement);
+            measurementJsonString = mapper.writeValueAsString(m);
         } catch (JsonProcessingException e) {
+            measurementJsonString = null;
             e.printStackTrace();
-            return "Error";
         }
+
+        return  measurementJsonString;
     }
 }

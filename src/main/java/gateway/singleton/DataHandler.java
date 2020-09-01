@@ -7,7 +7,7 @@ import java.util.List;
 
 public class DataHandler {
     private static DataHandler instance = null;
-    private final List<Measurement> data;
+    private final ArrayList<Measurement> data;
 
     private DataHandler() {
         data = new ArrayList<>();
@@ -26,7 +26,7 @@ public class DataHandler {
         this.data.add(m);
     }
 
-    public synchronized List<Measurement> getMeasurements() {
+    public synchronized ArrayList<Measurement> getMeasurements() {
         return new ArrayList<>(this.data);
     }
 }
