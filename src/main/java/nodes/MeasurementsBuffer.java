@@ -27,7 +27,7 @@ public class MeasurementsBuffer implements Buffer {
                     rawBuffer.get(rawBuffer.size() - 1).getType(),
                     rawBuffer.stream().mapToDouble(Measurement::getValue).average().getAsDouble(),
                     rawBuffer.get(rawBuffer.size() - 1).getTimestamp()));
-            rawBuffer = new LinkedList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE - 1));
+            rawBuffer = new LinkedList<> (rawBuffer.subList(RAW_BUFFER_SIZE / 2, RAW_BUFFER_SIZE));
         }
     }
 

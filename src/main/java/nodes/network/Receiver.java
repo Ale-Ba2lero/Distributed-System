@@ -4,11 +4,9 @@ import com.networking.node.NetworkServiceOuterClass.*;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import jBeans.NodeInfo;
-import nodes.sensor.Measurement;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 public class Receiver {
     private final NetworkHandler networkHandler;

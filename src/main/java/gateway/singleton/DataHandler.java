@@ -1,6 +1,6 @@
 package gateway.singleton;
 
-import javafx.util.Pair;
+import client.Pair;
 import nodes.sensor.Measurement;
 
 import java.util.ArrayList;
@@ -28,12 +28,17 @@ public class DataHandler {
     }
 
     public synchronized ArrayList<Measurement> getLastNMeasurements(int n) {
-        return new ArrayList<>(this.data.subList(data.size() - n - 1, data.size() - 1));
+        if (n > data.size()) {
+            return new ArrayList<>(this.data);
+        } else {
+            return new ArrayList<>(this.data.subList(data.size() - n - 1, data.size() - 1));
+        }
     }
 
-    public synchronized Pair<Double, Double> getStats(int n) {
+    public synchronized Pair<Double> getStats(int n) {
 
-        ArrayList<Measurement> sample = new ArrayList<>(data.subList(data.size() - n - 1, data.size() - 1));
+        if (n > data.size()) n = data.size();
+        ArrayList<Measurement> sample = new ArrayList<>(data.subList(data.size() - n, data.size()));
 
         double average = sample.stream().mapToDouble(Measurement::getValue).average().getAsDouble();
 
@@ -46,7 +51,4 @@ public class DataHandler {
         return new Pair<>(average, stdDev);
 
     }
-
-
-
 }

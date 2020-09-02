@@ -13,14 +13,16 @@ public class Transmitter implements Runnable {
     private final NetworkHandler networkHandler;
     private NodeInfo target;
     private ManagedChannel channel;
+    private boolean run;
 
-    public Transmitter(NetworkHandler networkHandler, NodeInfo node) {
+    public Transmitter(NetworkHandler networkHandler) {
         this.networkHandler = networkHandler;
+        this.run = true;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (run) {
             try {
                 synchronized (this) {
                     this.wait();
@@ -40,8 +42,8 @@ public class Transmitter implements Runnable {
                 }
 
                 channel = ManagedChannelBuilder
-                        .forTarget(target.getIp() + ":" + target.getPort())
-                        .usePlaintext(true).build();
+                    .forTarget(target.getIp() + ":" + target.getPort())
+                    .usePlaintext(true).build();
             }
 
             //plaintext channel on the address (ip/port) which offers the GreetingService service
@@ -49,7 +51,6 @@ public class Transmitter implements Runnable {
             stub.sendTheToken(token.tokenBuild(), new StreamObserver<Message>() {
                 @Override
                 public void onNext(Message message) {
-
                 }
 
                 @Override
@@ -58,9 +59,7 @@ public class Transmitter implements Runnable {
                 }
 
                 @Override
-                public void onCompleted() {
-
-                }
+                public void onCompleted() {}
             });
 
             //System.out.println("[" + node.getId() + "] Token sent to " + networkHandler.getTarget().getId());
@@ -90,9 +89,11 @@ public class Transmitter implements Runnable {
             }
 
             @Override
-            public void onCompleted() {
-
-            }
+            public void onCompleted() {}
         });
+    }
+
+    public void quit() {
+        this.run = false;
     }
 }

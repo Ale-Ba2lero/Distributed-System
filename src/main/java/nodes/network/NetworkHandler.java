@@ -245,6 +245,7 @@ public class NetworkHandler implements Runnable{
     private void quit() {
         nodeState = NodeState.DONE;
         System.out.println("Node successfully removed");
+        transmitter.quit();
     }
 
     public NodeInfo getTarget() {

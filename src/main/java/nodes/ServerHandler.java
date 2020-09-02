@@ -25,7 +25,6 @@ public class ServerHandler {
     }
 
     public static Response POSTMeasurement(Measurement m) {
-
         ObjectMapper mapper = new ObjectMapper();
         String measurementJsonString;
         try {
@@ -54,6 +53,4 @@ public class ServerHandler {
         WebTarget webTarget = client.target(URI).path("node/" + nodeId);
         return webTarget.request(MediaType.TEXT_PLAIN).delete();
     }
-
-
 }

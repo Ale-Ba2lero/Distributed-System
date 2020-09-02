@@ -3,7 +3,7 @@ package gateway.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gateway.singleton.DataHandler;
-import javafx.util.Pair;
+import client.Pair;
 import nodes.sensor.Measurement;
 import nodes.sensor.MixInMeasurement;
 
@@ -56,7 +56,7 @@ public class MeasurementDataResource {
     @Path("stats/{n}")
     public String getStats(@PathParam("n") int n) {
         ObjectMapper mapper = new ObjectMapper();
-        Pair<Double, Double> stats =  DataHandler.getInstance().getStats(n);
+        Pair<Double> stats =  DataHandler.getInstance().getStats(n);
         String statsJsonString;
         try {
             statsJsonString = mapper.writeValueAsString(stats);

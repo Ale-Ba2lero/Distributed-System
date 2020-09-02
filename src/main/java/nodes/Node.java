@@ -1,6 +1,5 @@
 package nodes;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
@@ -22,7 +21,7 @@ public final class Node {
     private static NetworkHandler networkHandler;
     private Node(){}
 
-    private static boolean terminate = false;
+    private static boolean run = true;
 
     public static void main(String[] args) {
 
@@ -32,7 +31,7 @@ public final class Node {
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
-        while (!terminate) {
+        while (run) {
             System.out.println("----------------------------------------\n" +
                 "1 : stop node\n"
             );
@@ -74,7 +73,7 @@ public final class Node {
             networkHandler.removeNodeFromNetwork();
         }
 
-        //Node.terminate = true;
+        //Node.run = false;
     }
 
     private static void serverGreeting(){
@@ -104,9 +103,9 @@ public final class Node {
 
     private static void nodeStart(LinkedList<NodeInfo> nodes) {
         networkHandler = new NetworkHandler(nodeInfo);
-
-        Transmitter transmitter = new Transmitter(networkHandler, nodeInfo);
+        Transmitter transmitter = new Transmitter(networkHandler);
         Receiver receiver = new Receiver(networkHandler, nodeInfo);
+
         MeasurementsBuffer buffer = new MeasurementsBuffer();
         Thread sensor = new PM10Simulator(nodeInfo.getId() + "", buffer);
 
