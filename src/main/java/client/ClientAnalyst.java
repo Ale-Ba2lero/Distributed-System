@@ -27,8 +27,9 @@ public class ClientAnalyst {
             System.out.println(
                 "1: (GET) Get number of nodes in network.\n" +
                 "2: (GET) Get last 'n' measurements.\n" +
-                "3: (GET) Get mean and standard deviation .\n" +
-                "0: Quit .\n"
+                "3: (GET) Get mean and standard deviation.\n" +
+                "4: (GET) Subscribe to updates\n" +
+                "0: Quit.\n"
             );
 
             try {
@@ -41,6 +42,9 @@ public class ClientAnalyst {
                         break;
                     case "3":
                         GETStats();
+                        break;
+                    case "4":
+                        GETUpdates();
                         break;
                     case "0":
                         System.out.println("Quit!");
@@ -108,6 +112,16 @@ public class ClientAnalyst {
             e.printStackTrace();
             System.out.println("Error!!");
         }
+    }
+
+    private static void GETUpdates() {
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(URI).path("node/update");
+        Invocation.Builder invocationBuilder = webTarget.request();
+        Response response = invocationBuilder.get();
+
+        System.out.println(response.getStatus());
+        System.out.println(response.readEntity(String.class));
     }
 
     private static int consoleValueRequest(String textRequest) {

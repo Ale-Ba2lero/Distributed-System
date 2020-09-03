@@ -6,13 +6,18 @@ import jBeans.NodeInfo;
 import gateway.singleton.NodeHandler;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Path("/node")
 public class NodeResource {
+    private static final BlockingQueue<AsyncResponse> suspended = new LinkedBlockingQueue<>();
 
     @GET
     @Produces("text/plain")
@@ -35,6 +40,12 @@ public class NodeResource {
         return NodeHandler.getInstance().getNodesSize() + "";
     }
 
+    @GET
+    @Path("update")
+    public void readMessage(@Suspended AsyncResponse ar) throws InterruptedException {
+        suspended.put(ar);
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setNewNode(NodeInfo node) {
@@ -44,6 +55,11 @@ public class NodeResource {
 
         if (!isPresent) {
             instance.addNode(node);
+
+            suspended.forEach(ar -> {
+                ar.resume("Node added");
+            });
+
             return Response.ok(instance.getNodesList()).build();
         } else {
             return Response.status(Response.Status.CONFLICT).entity("Node id already in use").build();
@@ -68,4 +84,6 @@ public class NodeResource {
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Node id not present").build();
     }
+
+
 }
