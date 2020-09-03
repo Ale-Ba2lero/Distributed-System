@@ -4,7 +4,6 @@ package nodes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jBeans.NodeInfo;
-import jdk.nashorn.internal.parser.JSONParser;
 import nodes.sensor.Measurement;
 
 import javax.ws.rs.client.*;
@@ -14,7 +13,7 @@ import javax.ws.rs.core.Response;
 public class ServerHandler {
     // if error "server already running on port 8080" use this on command line:
     // ./glassfish5/glassfish/bin/asadmin stop-domain
-    private static final String URI = "http://localhost:8080/sdp_project_red_war_exploded/";
+    private static final String URI = "http://localhost:8080/sdp_project_red_war_exploded/resources/";
 
     public static Response POSTServerGreeting(NodeInfo nodeInfo) {
         Client client = ClientBuilder.newClient();

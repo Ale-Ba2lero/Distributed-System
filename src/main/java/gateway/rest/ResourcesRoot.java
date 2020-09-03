@@ -15,8 +15,8 @@ public class ResourcesRoot extends Application{
     @Override
     public Set<Class<?>> getClasses() {
         HashSet h = new HashSet<Class<?>>();
-        h.add( NodeResource.class);
-        h.add( MeasurementDataResource.class);
+        h.add( GatewayResources.class);
+        //h.add( MeasurementDataResource.class);
         return h;
     }
 }

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 public class ClientAnalyst {
 
-    private static final String URI = "http://localhost:8080/sdp_project_red_war_exploded/";
+    private static final String URI = "http://localhost:8080/sdp_project_red_war_exploded/resources";
 
     public static void main(String[] args) throws IOException {
         boolean run = true;
@@ -115,13 +115,18 @@ public class ClientAnalyst {
     }
 
     private static void GETUpdates() {
-        Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target(URI).path("node/update");
-        Invocation.Builder invocationBuilder = webTarget.request();
-        Response response = invocationBuilder.get();
+        Thread t = new Thread(() -> {
+            while (true) {
+                Client client = ClientBuilder.newClient();
+                WebTarget webTarget = client.target(URI).path("update");
+                Invocation.Builder invocationBuilder = webTarget.request();
+                Response response = invocationBuilder.get();
 
-        System.out.println(response.getStatus());
-        System.out.println(response.readEntity(String.class));
+                System.out.println(response.getStatus());
+                System.out.println(response.readEntity(String.class));
+            }
+        });
+        t.start();
     }
 
     private static int consoleValueRequest(String textRequest) {

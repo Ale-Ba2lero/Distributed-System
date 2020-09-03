@@ -18,6 +18,7 @@ public class MeasurementDataResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/data")
     public Response addMeasurement(String jsonMeasurementString) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.addMixIn(Measurement.class, MixInMeasurement.class);
@@ -35,7 +36,7 @@ public class MeasurementDataResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("measurements/{n}")
+    @Path("data/measurements/{n}")
     public String getLastMeasurement(@PathParam("n") int n) {
 
         ArrayList<Measurement> m = DataHandler.getInstance().getLastNMeasurements(n);
@@ -53,7 +54,7 @@ public class MeasurementDataResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("stats/{n}")
+    @Path("data/stats/{n}")
     public String getStats(@PathParam("n") int n) {
         ObjectMapper mapper = new ObjectMapper();
         Pair<Double> stats =  DataHandler.getInstance().getStats(n);
