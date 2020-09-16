@@ -21,8 +21,6 @@ public final class Node {
     private static NetworkHandler networkHandler;
     private Node(){}
 
-    private static boolean run = true;
-
     public static void main(String[] args) {
 
         initNode();
@@ -31,9 +29,9 @@ public final class Node {
         InputStreamReader streamReader = new InputStreamReader(System.in);
         BufferedReader bufferedReader = new BufferedReader(streamReader);
 
-        while (run) {
+        while (true) {
             System.out.println("----------------------------------------\n" +
-                "1 : stop node\n"
+                    "1 : Quit the network\n"
             );
 
             try {
@@ -66,14 +64,12 @@ public final class Node {
 
     private static void stopNode() {
         Response goodbyeResponse = ServerHandler.DELETENodeFromServer(nodeInfo.getId());
-        System.out.println("\n\nResponse status: " + goodbyeResponse.getStatus());
-        System.out.println(goodbyeResponse.readEntity(String.class));
+        //System.out.println("\n\nResponse status: " + goodbyeResponse.getStatus());
+        //System.out.println(goodbyeResponse.readEntity(String.class));
         // Once the node has been removed from the gateway list remove it from the network.
         if ( goodbyeResponse.getStatus() == 200) {
             networkHandler.removeNodeFromNetwork();
         }
-
-        //Node.run = false;
     }
 
     private static void serverGreeting(){

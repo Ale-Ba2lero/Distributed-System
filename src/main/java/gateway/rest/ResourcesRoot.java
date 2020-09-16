@@ -16,7 +16,6 @@ public class ResourcesRoot extends Application{
     public Set<Class<?>> getClasses() {
         HashSet h = new HashSet<Class<?>>();
         h.add( GatewayResources.class);
-        //h.add( MeasurementDataResource.class);
         return h;
     }
 }

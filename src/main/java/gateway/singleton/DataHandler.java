@@ -4,7 +4,6 @@ import client.Pair;
 import nodes.sensor.Measurement;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DataHandler {
     private static DataHandler instance = null;

@@ -28,7 +28,6 @@ public class ServerHandler {
         String measurementJsonString;
         try {
             measurementJsonString = mapper.writeValueAsString(m);
-            System.out.println(measurementJsonString);
         } catch (JsonProcessingException e) {
             measurementJsonString = null;
             e.printStackTrace();

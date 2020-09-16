@@ -65,7 +65,7 @@ public class GatewayResources {
             instance.addNode(node);
 
             suspended.forEach(ar -> {
-                ar.resume("Node added\nId:" + node.getId() + "\nIp:" + node.getIp() + "\nPort:" + node.getPort());
+                ar.resume("Node added -> Id:" + node.getId() + " Ip:" + node.getIp() + " Port:" + node.getPort());
             });
 
             return Response.ok(instance.getNodesList()).build();
@@ -85,10 +85,10 @@ public class GatewayResources {
             if (nodeInfo.getId() == nodeId) {
                 if (instance.deleteNode(nodeInfo)) {
                     suspended.forEach(ar -> {
-                        ar.resume("Node removed"
-                                + "\nId:" + nodeInfo.getId()
-                                + "\nIp:" + nodeInfo.getIp()
-                                + "\nPort:" + nodeInfo.getPort());
+                        ar.resume("Node removed ->"
+                                + " Id:" + nodeInfo.getId()
+                                + " Ip:" + nodeInfo.getIp()
+                                + " Port:" + nodeInfo.getPort());
                     });
                     return Response.ok().entity("Node correctly removed from the list").build();
                 } else {

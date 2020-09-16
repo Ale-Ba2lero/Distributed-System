@@ -81,13 +81,6 @@ public class NetworkHandler implements Runnable{
     }
 
     private void computeToken(Token receivedToken) {
-
-        /*
-        i++;
-        if (i % 1000 == 0) {
-            System.out.println("Token: " + i);
-        }*/
-
         ArrayList<Measurement> measurements = receivedToken.getMeasurements();
 
         // Check whether the measurement of this node is already present in the token...
@@ -118,8 +111,8 @@ public class NetworkHandler implements Runnable{
             System.out.println("Send to geateway: " + m );
 
             Response response = ServerHandler.POSTMeasurement(m);
-            System.out.println(response.getStatus());
-            System.out.println(response.readEntity(String.class));
+            //System.out.println(response.getStatus());
+            //System.out.println(response.readEntity(String.class));
 
             measurements = new ArrayList<>();
         }
@@ -244,7 +237,7 @@ public class NetworkHandler implements Runnable{
 
     private void quit() {
         nodeState = NodeState.DONE;
-        System.out.println("Node successfully removed");
+        System.out.println("Node removed");
         transmitter.quit();
     }
 
