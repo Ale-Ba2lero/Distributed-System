@@ -101,14 +101,18 @@ public class ClientAnalyst {
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.get();
 
-        ObjectMapper mapper = new ObjectMapper();
-        Pair<Double> stats;
-        try {
-            stats = mapper.readValue(response.readEntity(String.class), new TypeReference<Pair<Double>>(){});
-            System.out.println("Average: " + stats.getKey() + " Standard Deviation: " + stats.getValue());
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error!!");
+        if (response.getStatus() == 200) {
+            ObjectMapper mapper = new ObjectMapper();
+            Pair<Double> stats;
+            try {
+                stats = mapper.readValue(response.readEntity(String.class), new TypeReference<Pair<Double>>(){});
+                System.out.println("Average: " + stats.getKey() + " Standard Deviation: " + stats.getValue());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Error!!");
+            }
+        } else {
+            System.out.println("Not enough data");
         }
     }
 

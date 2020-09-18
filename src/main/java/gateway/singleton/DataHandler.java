@@ -30,14 +30,13 @@ public class DataHandler {
         if (n > data.size()) {
             return new ArrayList<>(this.data);
         } else {
-            return new ArrayList<>(this.data.subList(data.size() - n - 1, data.size() - 1));
+            return new ArrayList<>(this.data.subList(data.size() - n , data.size()));
         }
     }
 
     public synchronized Pair<Double> getStats(int n) {
-
         if (n > data.size()) n = data.size();
-        ArrayList<Measurement> sample = new ArrayList<>(data.subList(data.size() - n, data.size()));
+        ArrayList<Measurement> sample = new ArrayList<>(this.data.subList(Math.max(data.size() - n, 0) , data.size()));
 
         double average = sample.stream().mapToDouble(Measurement::getValue).average().getAsDouble();
 
@@ -48,6 +47,5 @@ public class DataHandler {
             .sum() / sample.size());
 
         return new Pair<>(average, stdDev);
-
     }
 }

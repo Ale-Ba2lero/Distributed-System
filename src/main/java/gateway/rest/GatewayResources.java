@@ -141,8 +141,8 @@ public class GatewayResources {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("data/stats/{n}")
     public String getStats(@PathParam("n") int n) {
-        ObjectMapper mapper = new ObjectMapper();
         Pair<Double> stats =  DataHandler.getInstance().getStats(n);
+        ObjectMapper mapper = new ObjectMapper();
         String statsJsonString;
         try {
             statsJsonString = mapper.writeValueAsString(stats);
