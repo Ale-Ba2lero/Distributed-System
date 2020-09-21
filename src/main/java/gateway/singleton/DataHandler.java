@@ -27,15 +27,10 @@ public class DataHandler {
     }
 
     public synchronized ArrayList<Measurement> getLastNMeasurements(int n) {
-        if (n > data.size()) {
-            return new ArrayList<>(this.data);
-        } else {
-            return new ArrayList<>(this.data.subList(data.size() - n , data.size()));
-        }
+        return new ArrayList<>(this.data.subList(Math.max(data.size() - n, 0) , data.size()));
     }
 
     public synchronized Pair<Double> getStats(int n) {
-        if (n > data.size()) n = data.size();
         ArrayList<Measurement> sample = new ArrayList<>(this.data.subList(Math.max(data.size() - n, 0) , data.size()));
 
         double average = sample.stream().mapToDouble(Measurement::getValue).average().getAsDouble();

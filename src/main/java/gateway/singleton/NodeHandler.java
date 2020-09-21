@@ -14,8 +14,7 @@ public class NodeHandler {
         nodes = new LinkedList<NodeInfo>();
     }
 
-    public static synchronized NodeHandler getInstance()
-    {
+    public static synchronized NodeHandler getInstance() {
         if (instance == null)
             instance = new NodeHandler();
 

@@ -17,22 +17,17 @@ public class NetworkHandler implements Runnable{
     private Receiver receiver;
     private MeasurementsBuffer buffer;
 
-    private final Object networkTargetLock;
     private NodeInfo target;
 
-    private final Object tokenLock;
     private Token token;
 
     private final ArrayList<NodeInfo> greetingNodes;
-    private long i = 0;
 
     public NetworkHandler(NodeInfo nodeInfo) {
         nodeState = NodeState.STARTING;
         node = nodeInfo;
         nodes = new LinkedList<>();
         greetingNodes = new ArrayList<>();
-        networkTargetLock = new Object();
-        tokenLock = new Object();
     }
 
     // If this is not the only node, start a token transmitter thread (gRPC client)
@@ -173,11 +168,12 @@ public class NetworkHandler implements Runnable{
             nodeState = NodeState.STARTING;
         } else {
             token = new Token(
-                    tokenNodesToAdd,
-                    tokenNodesToRemove,
-                    node,
-                    targetNode,
-                    measurements);
+                tokenNodesToAdd,
+                tokenNodesToRemove,
+                node,
+                targetNode,
+                measurements);
+
             tokenReady();
         }
     }
@@ -191,22 +187,20 @@ public class NetworkHandler implements Runnable{
 
     // Updates the node reference inside the network. This means set the new target node that will receive the token.
     private void updateNetworkTarget() {
-        synchronized (networkTargetLock) {
-            NodeInfo newNext = getNextNodeInNetwork();
-            if (target != null && newNext.getId() != target.getId()) {
-                target = newNext;
-            } else if (target == null) {
-                // If next is null this means this was the first node entering the network and now is updating its references
-                // due to an other node greeting to it. Now the network contains two nodes and the token loop can start.
-                target = newNext;
-                nodeState = NodeState.RUNNING;
-                token = new Token(new ArrayList<>(),
-                        new ArrayList<>(),
-                        node,
-                        target,
-                        new ArrayList<>());
-                tokenReady();
-            }
+        NodeInfo newNext = getNextNodeInNetwork();
+        if (target != null && newNext.getId() != target.getId()) {
+            target = newNext;
+        } else if (target == null) {
+            // If next is null this means this was the first node entering the network and now is updating its references
+            // due to an other node greeting to it. Now the network contains two nodes and the token loop can start.
+            target = newNext;
+            nodeState = NodeState.RUNNING;
+            token = new Token(new ArrayList<>(),
+                    new ArrayList<>(),
+                    node,
+                    target,
+                    new ArrayList<>());
+            tokenReady();
         }
 
         System.out.println(nodes);
@@ -242,15 +236,11 @@ public class NetworkHandler implements Runnable{
     }
 
     public NodeInfo getTarget() {
-        synchronized (networkTargetLock) {
-            return new NodeInfo(target.getId(), target.getIp(), target.getPort());
-        }
+        return new NodeInfo(target.getId(), target.getIp(), target.getPort());
     }
 
     public Token getToken() {
-        synchronized (tokenLock) {
-            return token;
-        }
+        return token;
     }
 
     public NodeInfo getNode() {

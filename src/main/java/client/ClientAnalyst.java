@@ -2,7 +2,6 @@ package client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import client.Pair;
 import nodes.sensor.Measurement;
 import nodes.sensor.MixInMeasurement;
 
